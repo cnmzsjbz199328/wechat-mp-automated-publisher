@@ -12,33 +12,34 @@ export class WeChatService {
     const url = `${API_URLS.WECHAT_TOKEN}?grant_type=client_credential&appid=${this.env.APPID}&secret=${this.env.APPSECRET}`;
     const res = await fetch(url);
     const data = await res.json() as WeChatTokenResponse;
-    
+
     if (data.errcode) {
       throw new Error(`Failed to get access token: ${data.errmsg}`);
     }
-    
+
     return data.access_token;
   }
 
   async uploadThumb(token: string): Promise<string> {
-    const imgRes = await fetch(API_URLS.DEFAULT_THUMB_IMAGE);
-    const blob = await imgRes.blob();
-    
+    const imgRes = await fetch(API_URLS.DEFAULT_THUMB_IMAGE, { redirect: 'follow' });
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+
     const formData = new FormData();
     formData.append('media', blob, 'thumb.jpg');
-    
+
     const url = `${API_URLS.WECHAT_MEDIA_UPLOAD}?access_token=${token}&type=image`;
     const uploadRes = await fetch(url, {
       method: 'POST',
       body: formData
     });
-    
+
     const data = await uploadRes.json() as WeChatMediaResponse;
-    
+
     if (data.errcode) {
       throw new Error(`Failed to upload thumb: ${data.errmsg}`);
     }
-    
+
     return data.thumb_media_id || data.media_id;
   }
 
@@ -56,13 +57,13 @@ export class WeChatService {
         }]
       })
     });
-    
+
     const data = await draftRes.json() as WeChatDraftResponse;
-    
+
     if (data.errcode) {
       throw new Error(`Failed to create draft: ${data.errmsg}`);
     }
-    
+
     return data;
   }
 }

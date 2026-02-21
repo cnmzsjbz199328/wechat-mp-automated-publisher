@@ -11,8 +11,8 @@ export const STYLES = {
 
 export const API_URLS = {
   WECHAT_TOKEN: 'https://api.weixin.qq.com/cgi-bin/token',
-  WECHAT_MEDIA_UPLOAD: 'https://api.weixin.qq.com/cgi-bin/draft/add_temporary_media',
+  WECHAT_MEDIA_UPLOAD: 'https://api.weixin.qq.com/cgi-bin/material/add_material',
   WECHAT_DRAFT_ADD: 'https://api.weixin.qq.com/cgi-bin/draft/add',
   YAHOO_FINANCE_RSS: 'https://finance.yahoo.com/news/rssindex',
-  DEFAULT_THUMB_IMAGE: 'https://images.unsplash.com/photo-1611974717482-58a05f93974a?q=80&w=1000&auto=format&fit=crop'
+  DEFAULT_THUMB_IMAGE: 'https://picsum.photos/id/1070/900/500.jpg'
 };
