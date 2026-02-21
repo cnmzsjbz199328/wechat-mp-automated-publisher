@@ -1,0 +1,12 @@
+name = "wechat-mp-automated-publisher"
+main = "src/index.ts"
+compatibility_date = "2024-02-22"
+
+# Bindings
+[ai]
+binding = "AI"
+
+# Environment variables
+# [vars]
+# APPID = "wxce886342ef86a0d7"
+# APPSECRET = "76c330faaf69e373c2188db49c5b9ed6"
