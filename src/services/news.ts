@@ -57,21 +57,22 @@ abstract class BaseRssProvider implements NewsProvider {
    * Specific providers can override this if the XML structure is unique.
    */
   protected parseItem(content: string): NewsItem | null {
-    const title = content.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] ||
-      content.match(/<title>([\s\S]*?)<\/title>/)?.[1];
-    const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
-    const link = content.match(/<link>([\s\S]*?)<\/link>/)?.[1];
+    const title = content.match(/<title>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/title>/i)?.[1] ||
+      content.match(/<title>([\s\S]*?)<\/title>/i)?.[1];
+    const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i)?.[1];
+    const link = content.match(/<link>([\s\S]*?)<\/link>/i)?.[1];
 
-    // 1. Extract description (check description then content:encoded)
-    let description = content.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)?.[1] ||
-      content.match(/<description>([\s\S]*?)<\/description>/)?.[1] ||
-      content.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/)?.[1] ||
-      content.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/)?.[1];
+    // 1. Extract description (Flexible with whitespace between tags)
+    let description =
+      content.match(/<description>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/description>/i)?.[1] ||
+      content.match(/<description>([\s\S]*?)<\/description>/i)?.[1] ||
+      content.match(/<content:encoded>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/content:encoded>/i)?.[1] ||
+      content.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/i)?.[1];
 
-    // 2. Extract image URL (Standard tags -> First <img> in content)
-    let imageUrl = content.match(/<media:content[^>]+url="([^"]+)"/)?.[1] ||
-      content.match(/<media:thumbnail[^>]+url="([^"]+)"/)?.[1] ||
-      content.match(/<enclosure[^>]+url="([^"]+)"/)?.[1];
+    // 2. Extract image URL
+    let imageUrl = content.match(/<media:content[^>]+url="([^"]+)"/i)?.[1] ||
+      content.match(/<media:thumbnail[^>]+url="([^"]+)"/i)?.[1] ||
+      content.match(/<enclosure[^>]+url="([^"]+)"/i)?.[1];
 
     if (!imageUrl) {
       const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
@@ -90,10 +91,8 @@ abstract class BaseRssProvider implements NewsProvider {
         .replace(/<[^>]*>?/gm, '') // Strip HTML tags
         .trim();
 
-      // If it's a full article body, truncate to a decent abstract
-      if (description.length > 500) {
-        description = description.substring(0, 480) + '...';
-      }
+      // USER REQUEST: Remvoe truncation, show everything
+      // if (description.length > 500) { description = description.substring(0, 480) + '...'; }
     }
 
     if (!title || !pubDate) return null;
@@ -108,6 +107,7 @@ abstract class BaseRssProvider implements NewsProvider {
     };
   }
 }
+
 
 
 /**
