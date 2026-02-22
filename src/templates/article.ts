@@ -15,6 +15,10 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
   const newsHtml = news.map(n => `
     <div style="${STYLES.newsItem}">
       <div style="${STYLES.newsTitle}">${n.title}</div>
+      ${n.description ? `
+      <div style="font-size:14px;color:#666;line-height:1.6;margin-bottom:8px;text-align:justify;">
+        ${n.description}
+      </div>` : ''}
       <div style="${STYLES.newsMeta}">
         <div>
           <span style="${STYLES.newsBadge}">${n.source || 'Market News'}</span>
@@ -28,8 +32,8 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
     <div style="${STYLES.container}">
       <!-- Header Section -->
       <div style="${STYLES.header}">
-        <h1 style="${STYLES.title}">美股实战内参</h1>
-        <p style="${STYLES.subtitle}">Real-time Market Insights & AI Analysis</p>
+        <h1 style="${STYLES.title}">聚合资讯 · AI解读</h1>
+        <p style="${STYLES.subtitle}">Cross-Domain Insights & AI Analysis</p>
       </div>
 
       <!-- AI Analysis Card -->
@@ -42,18 +46,18 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
         </div>
       </div>
 
-      <!-- News Flash Card -->
+      <!-- Feed Section -->
       <div style="${STYLES.sectionCard}">
         <div style="${STYLES.sectionTitle}">
-          <span style="margin-right:8px;">⚡</span> 核心简讯
+          <span style="margin-right:8px;">⚡</span> 核心简报
         </div>
         ${newsHtml}
       </div>
 
       <!-- Footer Info -->
       <div style="text-align:center;padding:20px 0;opacity:0.4;font-size:11px;">
-        数据源: Yahoo Finance · 由 Cloudflare AI 提供分析<br/>
-        © 2024 大侠的读书笔记
+        数据源: ${news[0]?.source || 'Global Feeds'} · 由 Cloudflare AI 提供分析<br/>
+        © 2026 大侠的读书笔记
       </div>
     </div>
   `;

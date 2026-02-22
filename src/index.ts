@@ -1,6 +1,6 @@
 import { Env } from './types';
 import { WeChatService } from './services/wechat';
-import { NewsService } from './services/news';
+import { NewsFactory } from './services/news';
 import { AIService } from './services/ai';
 import { generateArticleHtml } from './templates/article';
 import { generatePreviewShell } from './templates/preview';
@@ -9,75 +9,83 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
-    if (pathname !== '/finance-live' && pathname !== '/preview' && pathname !== '/preview-html') {
-      return Response.json({ status: 'ready' });
+    // Dynamic Route Detection: matches /{domain}-preview-html, /{domain}-live, /{domain}-preview
+    const match = pathname.match(/^\/([A-Za-z]+)-(preview-html|live|preview)$/);
+
+    // Legacy mapping and defaults
+    let domain = match ? match[1].toUpperCase() : 'FINANCE';
+    let action = match ? match[2] : '';
+
+    if (!match) {
+      if (pathname === '/finance-live') { domain = 'FINANCE'; action = 'live'; }
+      else if (pathname === '/preview-html') { domain = 'FINANCE'; action = 'preview-html'; }
+      else if (pathname === '/preview') { domain = 'FINANCE'; action = 'preview'; }
+      else {
+        return Response.json({ status: 'ready', domains: ['FINANCE', 'NASA', 'LITHUB', 'ARS'] });
+      }
     }
 
-    // /preview-html: modern browser preview with real images and AI bullets
-    if (pathname === '/preview-html') {
-      const news = await new NewsService().fetchYahooFinanceNews();
-      const aiSummary = await new AIService(env).processWithAI(news);
-      const articleHtml = generateArticleHtml(aiSummary, news);
-      const html = generatePreviewShell(articleHtml, news, aiSummary);
-      return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
-    }
-
-
-
-    // Phase 1 preview: news + AI + HTML only (no WeChat)
-    if (pathname === '/preview') {
-      const newsService = new NewsService();
-      const aiService = new AIService(env);
-
-      const news = await newsService.fetchYahooFinanceNews();
-      const aiSummary = await aiService.processWithAI(news);
-      const htmlContent = generateArticleHtml(aiSummary, news);
-
-      return Response.json({
-        phase: 'Phase 1 - RSS + AI Validation',
-        newsCount: news.length,
-        news,
-        aiSummary,
-        htmlLength: htmlContent.length,
-        htmlPreview: htmlContent.substring(0, 300) + '...',
-      });
-    }
-
+    const newsProvider = NewsFactory.getProvider(domain);
+    const aiService = new AIService(env);
+    const wechatService = new WeChatService(env);
 
     try {
-      // Initialize services
-      const wechatService = new WeChatService(env);
-      const newsService = new NewsService();
-      const aiService = new AIService(env);
-
-      // 1. Fetch news
-      const news = await newsService.fetchYahooFinanceNews();
+      // 1. Fetch news for the specific domain
+      const news = await newsProvider.fetchNews();
 
       // 2. Process with AI
       const aiSummary = await aiService.processWithAI(news);
 
-      // 3. Generate HTML content
-      const htmlContent = generateArticleHtml(aiSummary, news);
+      // 3. Action: Browser Preview (HTML)
+      if (action === 'preview-html') {
+        const articleHtml = generateArticleHtml(aiSummary, news);
+        const html = generatePreviewShell(articleHtml, news, aiSummary);
+        return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      }
 
-      // 4. Get WeChat access token
-      const token = await wechatService.getAccessToken();
+      // 4. Action: JSON Preview
+      if (action === 'preview') {
+        const htmlContent = generateArticleHtml(aiSummary, news);
+        return Response.json({
+          domain,
+          newsCount: news.length,
+          news,
+          aiSummary,
+          htmlLength: htmlContent.length,
+          htmlPreview: htmlContent.substring(0, 300) + '...',
+        });
+      }
 
-      // 5. Upload thumbnail
-      const thumbMediaId = await wechatService.uploadThumb(token);
+      // 5. Action: Live Publish to WeChat
+      if (action === 'live') {
+        const htmlContent = generateArticleHtml(aiSummary, news);
+        const token = await wechatService.getAccessToken();
+        const thumbMediaId = await wechatService.uploadThumb(token);
 
-      // 6. Create draft
-      const draftRes = await wechatService.createDraft(
-        token,
-        '【实时追踪】美股动态 & AI解读',
-        '大侠',
-        htmlContent,
-        thumbMediaId
-      );
+        // Domain-specific titles
+        const titles: Record<string, string> = {
+          FINANCE: '【实时追踪】美股动态 & AI解读',
+          NASA: '【星际探索】NASA 航天前沿速递',
+          LITHUB: '【深度阅读】今日文学 & 文化精华',
+          ARS: '【科技深思考】Ars Technica 技术洞察'
+        };
 
-      return Response.json(draftRes);
+        const draftRes = await wechatService.createDraft(
+          token,
+          titles[domain] || `【${domain}】今日动态预览`,
+          '大侠',
+          htmlContent,
+          thumbMediaId
+        );
+
+        return Response.json({ domain, result: draftRes });
+      }
+
+      return Response.json({ error: 'Invalid action' }, { status: 400 });
+
     } catch (error: any) {
-      console.error('Error processing request:', error);
-      return Response.json({ error: error.message }, { status: 500 });
+      console.error(`Error processing ${domain} ${action}:`, error);
+      return Response.json({ domain, error: error.message }, { status: 500 });
     }
   }
 };

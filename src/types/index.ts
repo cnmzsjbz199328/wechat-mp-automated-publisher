@@ -10,6 +10,7 @@ export interface NewsItem {
   link?: string;
   source?: string;
   imageUrl?: string;
+  description?: string;
 }
 
 export interface WeChatTokenResponse {

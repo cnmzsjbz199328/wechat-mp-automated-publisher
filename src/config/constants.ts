@@ -19,3 +19,11 @@ export const API_URLS = {
   YAHOO_FINANCE_RSS: 'https://finance.yahoo.com/news/rssindex',
   DEFAULT_THUMB_IMAGE: 'https://picsum.photos/id/1070/900/500.jpg'
 };
+
+export const RSS_SOURCES: Record<string, string> = {
+  FINANCE: 'https://www.cnbc.com/id/100003114/device/rss/rss.html',
+  NASA: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
+  LITHUB: 'https://lithub.com/feed/',
+  ARS: 'https://feeds.arstechnica.com/arstechnica/index'
+};
+
