@@ -62,19 +62,39 @@ abstract class BaseRssProvider implements NewsProvider {
     const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
     const link = content.match(/<link>([\s\S]*?)<\/link>/)?.[1];
 
-    // Extract description (prefer CDATA if exists)
+    // 1. Extract description (check description then content:encoded)
     let description = content.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)?.[1] ||
-      content.match(/<description>([\s\S]*?)<\/description>/)?.[1];
+      content.match(/<description>([\s\S]*?)<\/description>/)?.[1] ||
+      content.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/)?.[1] ||
+      content.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/)?.[1];
 
-    // Clean description: remove HTML tags
-    if (description) {
-      description = description.replace(/<[^>]*>?/gm, '').trim();
-    }
-
-    // Extract image URL
-    const imageUrl = content.match(/<media:content[^>]+url="([^"]+)"/)?.[1] ||
+    // 2. Extract image URL (Standard tags -> First <img> in content)
+    let imageUrl = content.match(/<media:content[^>]+url="([^"]+)"/)?.[1] ||
       content.match(/<media:thumbnail[^>]+url="([^"]+)"/)?.[1] ||
       content.match(/<enclosure[^>]+url="([^"]+)"/)?.[1];
+
+    if (!imageUrl) {
+      const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
+      if (imgMatch) imageUrl = imgMatch[1];
+    }
+
+    // 3. Cleanup: Decode common entities and strip HTML
+    if (description) {
+      description = description
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/<[^>]*>?/gm, '') // Strip HTML tags
+        .trim();
+
+      // If it's a full article body, truncate to a decent abstract
+      if (description.length > 500) {
+        description = description.substring(0, 480) + '...';
+      }
+    }
 
     if (!title || !pubDate) return null;
 
@@ -88,6 +108,7 @@ abstract class BaseRssProvider implements NewsProvider {
     };
   }
 }
+
 
 /**
  * Concrete Providers for different domains
