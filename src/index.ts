@@ -8,13 +8,6 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
-    // TEMP: get Worker egress IP for WeChat whitelist — remove after use
-    if (pathname === '/check-ip') {
-      const ipRes = await fetch('https://api.ipify.org?format=json');
-      const ipData = await ipRes.json() as { ip: string };
-      return Response.json({ workerEgressIp: ipData.ip, note: 'Add this IP to WeChat whitelist, then delete this route' });
-    }
-
     if (pathname !== '/finance-live' && pathname !== '/preview') {
       return Response.json({ status: 'ready' });
     }
