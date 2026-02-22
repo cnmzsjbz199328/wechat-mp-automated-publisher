@@ -65,8 +65,10 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
       const parts = line.split('|').map(p => p.trim());
       if (parts.length >= 4) {
         const [word, type, def, example] = parts;
+        // Clean example (remove possible quotes from AI)
+        const cleanExample = example.replace(/^["'“”'"]|["'“”'"]$/g, '').trim();
         // Highlight word in example (case insensitive)
-        const highlightedEx = example.replace(
+        const highlightedEx = cleanExample.replace(
           new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
           '<span class="text-primary font-medium">$1</span>'
         );

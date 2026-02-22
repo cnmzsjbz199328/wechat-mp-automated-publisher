@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?><rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" version="2.0">
+    <channel>
+        <title>Ars Technica - All content</title>
+        <atom:link href="https://arstechnica.com/feed/" rel="self" type="application/rss+xml"/>
+        <link>https://arstechnica.com</link>
+        <description>All Ars Technica stories</description>
+        <lastBuildDate>Sat, 21 Feb 2026 23:54:38 +0000</lastBuildDate>
+        <language>en-US</language>
+        <sy:updatePeriod>
+            hourly        </sy:updatePeriod>
+        <sy:updateFrequency>
+            1        </sy:updateFrequency>
+        
+<image>
+	<url>https://cdn.arstechnica.net/wp-content/uploads/2016/10/cropped-ars-logo-512_480-60x60.png</url>
+	<title>Ars Technica</title>
+	<link>https://arstechnica.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+            <item>
+                <title>NASA says it needs to haul the Artemis II rocket back to the hangar for repairs</title>
+                <link>https://arstechnica.com/space/2026/02/nasa-says-it-needs-to-haul-the-artemis-ii-rocket-back-to-the-hangar-for-repairs/</link>
+                                    <comments>https://arstechnica.com/space/2026/02/nasa-says-it-needs-to-haul-the-artemis-ii-rocket-back-to-the-hangar-for-repairs/#comments</comments>
+                
+                <dc:creator>
+                    <![CDATA[Stephen Clark]]>
+                </dc:creator>
+                <pubDate>Sat, 21 Feb 2026 23:54:38 +0000</pubDate>
+                		<category><![CDATA[Science]]></category>
+		<category><![CDATA[Space]]></category>
+                <guid isPermaLink="true">https://arstechnica.com/space/2026/02/nasa-says-it-needs-to-haul-the-artemis-ii-rocket-back-to-the-hangar-for-repairs/</guid>
+
+                                    <description>
+                        <![CDATA["Accessing and remediating any of these issues can only be performed in the VAB."]]>
+                    </description>
+                                                                <content:encoded>
+                            <![CDATA[<p><span class="css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3">A day after NASA officials expressed optimism that they could be ready to launch the Artemis II mission around the Moon next month, the space agency's administrator announced Saturday that a new problem will require the removal of the rocket from its launch pad in Florida.</span></p>
+<p>The latest issue appeared Friday evening, when data showed an interruption in helium flow into the upper stage of the Space Launch System rocket, NASA Administrator Jared Isaacman wrote in a <a href="https://x.com/NASAAdmin/status/2025231621436186837?s=20">post on X</a>. Isaacman posted a more thorough update Saturday, writing that engineers are still examining the potential cause of the problem, but any fixes must take place inside the Vehicle Assembly Building.</p>
+<p>That means NASA and contractor ground teams will immediately begin preparing to roll the 322-foot-tall (98-meter) SLS rocket off of Launch Complex 39B and back to the VAB. The rocket and its mobile launch platform will ride NASA's crawler-transporter for the 4-mile journey.</p><p><a href="https://arstechnica.com/space/2026/02/nasa-says-it-needs-to-haul-the-artemis-ii-rocket-back-to-the-hangar-for-repairs/">Read full article</a></p>
+<p><a href="https://arstechnica.com/space/2026/02/nasa-says-it-needs-to-haul-the-artemis-ii-rocket-back-to-the-hangar-for-repairs/#comments">Comments</a></p>
+]]>
+                        </content:encoded>
+                                    
+                                    <slash:comments>14</slash:comments>
+                
+                
+                <media:content height="648" medium="image" type="image/jpeg" url="https://cdn.arstechnica.net/wp-content/uploads/2026/02/IMG_0016-1-1152x648-1771717658.jpg" width="1152">
+<media:thumbnail height="500" url="https://cdn.arstechnica.net/wp-content/uploads/2026/02/IMG_0016-1-500x500.jpg" width="500"/>
+<media:credit>Stephen Clark/Ars Technica</media:credit><media:text>The Orion spacecraft and upper stage of the SLS rocket tower nearly 300 feet above NASA's launch platform. Umbilical lines connecting to the Orion service module (upper right) and SLS upper stage (lower right) are visible in this photo taken during rollout to the launch pad last month.</media:text></media:content>
+            </item>
+                    <item>
+                <title>Dinosaur eggshells can reveal the age of other fossils</title>
+                <link>https://arstechnica.com/science/2026/02/dinosaur-eggshells-can-reveal-the-age-of-other-fossils/</link>
+                                    <comments>https://arstechnica.com/

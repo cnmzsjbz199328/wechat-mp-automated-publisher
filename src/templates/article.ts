@@ -13,8 +13,10 @@ function formatVocab(aiSummary: string): string {
       const parts = line.split('|').map(p => p.trim());
       if (parts.length >= 4) {
         const [word, type, def, example] = parts;
-        // Basic highlight for WeChat (bolding the keyword in example)
-        const highlightedEx = example.replace(
+        // Clean example (remove possible quotes from AI)
+        const cleanExample = example.replace(/^["'“”'"]|["'“”'"]$/g, '').trim();
+        // Highlight word in example (case insensitive)
+        const highlightedEx = cleanExample.replace(
           new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
           `<span style="color:#137fec;font-weight:bold;">$1</span>`
         );

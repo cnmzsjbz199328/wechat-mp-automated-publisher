@@ -8,7 +8,10 @@ export class AIService {
   }
 
   async processWithAI(news: NewsItem[]): Promise<string> {
-    const newsContent = news.map((item, index) => `${index + 1}. ${item.title}\n${item.description || ''}`).join('\n\n');
+    const newsContent = news.map((item, index) => {
+      const desc = (item.description || '').substring(0, 800);
+      return `${index + 1}. ${item.title}\n${desc}`;
+    }).join('\n\n');
 
     const prompt = `你是一位专业的英语学习助手。请针对以下新闻内容，挑选出 5 个读者最值得学习的高级英语词汇或词组。
     

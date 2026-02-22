@@ -21,7 +21,7 @@ export default {
       else if (pathname === '/preview-html') { domain = 'FINANCE'; action = 'preview-html'; }
       else if (pathname === '/preview') { domain = 'FINANCE'; action = 'preview'; }
       else {
-        return Response.json({ status: 'ready', domains: ['FINANCE', 'NASA', 'LITHUB', 'ARS'] });
+        return Response.json({ status: 'ready', domains: ['FINANCE', 'NASA', 'ARS'] });
       }
     }
 
@@ -66,7 +66,6 @@ export default {
         const titles: Record<string, string> = {
           FINANCE: '【实时追踪】美股动态 & AI解读',
           NASA: '【星际探索】NASA 航天前沿速递',
-          LITHUB: '【深度阅读】今日文学 & 文化精华',
           ARS: '【科技深思考】Ars Technica 技术洞察'
         };
 

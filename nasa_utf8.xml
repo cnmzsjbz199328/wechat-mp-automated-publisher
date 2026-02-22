@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/" >
+
+<channel>
+	<title>NASA</title>
+	<atom:link href="https://www.nasa.gov/news-release/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.nasa.gov</link>
+	<description>Official National Aeronautics and Space Administration Website</description>
+	<lastBuildDate>Fri, 20 Feb 2026 22:05:24 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.8.3</generator>
+	<item>
+		<title>NASA Is Helping Bring Giant Tortoises Back to the Galápagos</title>
+		<link>https://science.nasa.gov/earth/nasa-is-helping-bring-giant-tortoises-back-to-the-galapagos/</link>
+		
+		<dc:creator><![CDATA[]]></dc:creator>
+		<pubDate>Fri, 20 Feb 2026 20:00:00 +0000</pubDate>
+				<category><![CDATA[Earth]]></category>
+		<category><![CDATA[Global Precipitation Measurement (GPM)]]></category>
+		<category><![CDATA[Goddard Space Flight Center]]></category>
+		<category><![CDATA[Human Dimensions]]></category>
+		<category><![CDATA[Landsat]]></category>
+		<category><![CDATA[Life on Earth]]></category>
+		<category><![CDATA[Terra]]></category>
+		<category><![CDATA[Vegetation]]></category>
+		<category><![CDATA[Wildlife]]></category>
+		<guid isPermaLink="false">https://science.nasa.gov/earth/nasa-is-helping-bring-giant-tortoises-back-to-the-galapagos/</guid>
+
+					<description><![CDATA[Giant tortoises are returning to Floreana Island after more than 150 years, guided by NASA data that shows suitable areas for release.]]></description>
+										<content:encoded><![CDATA[<div id="" class=" hds-module hds-module-full alignfull wp-block-nasa-blocks-secondary-navigation">
+<div class="hds-secondary-navigation-wrapper z-top width-100 padding-0">
+<div id="" class="hds-secondary-navigation width-full border-bottom-1px text-center hds-color-mode-dark hds-module hds-module-full alignfull wp-block-nasa-blocks-hdsnav"><button type="button" class="hds-secondary-nav-mobile-button display-flex tablet:display-flex desktop:display-none width-full flex-align-center bg-carbon-90 border-color-carbon-80 color-spacesuit-white" aria-expanded="false" aria-controls="hds-secondary-nav-track"><span>Earth (ESD)</span><svg width="16" height="16" alt="" enable-background="new 0 0 400 400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><path d="m4.2 122.2 195.1 195.1 196.5-196.6-37.9-38-157.8 157.8-156.8-156.8z" /></svg></button></p>
+<div class="hds-secondary-nav-track grid-container grid-container-extrawide padding-0 tablet:padding-x-3 desktop:padding-x-2 ">
+<div class="hds-secondary-navigation-menu-items">
+<nav>
+<ul class="usa-nav__primary usa-accordion flex-justify-center margin-0">
+<li class="usa-nav__primary-item "><a class="usa-nav__link" href="https://science.nasa.gov/earth/" rel="noopener">Earth</a></li>
+<li class="usa-nav__primary-item"><button type="button" class="usa-accordion__button usa-nav__link" aria-expanded="false" aria-controls="basic-nav-section-one"><span>Explore</span><svg class="hds-desktop-submenu-toggle-icon display-none tablet:display-none desktop:display-block" width="16" height="16" alt="" enable-background="new 0 0 400 400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><path d="m4.2 122.2 195.1 195.1 196.5-196.6-37.9-38-157.8 157.8-156.8-156.8z" /></svg><svg class="hds-mobile-submenu-toggle-icon display-block tablet:display-block desktop:display-none" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7.5" fill="#0B3D91" stroke="white"/><rect x="4" y="7.6001" width="8" height="0.8" fill="white"/><rect class="hds-mobile-submenu-toggle-icon-line-vertical" x="7.59998" y="12" width="8" height="0.8" transform="rotate(-90 7.59998 12)" fill="white"/></svg></button>
+<ul id="basic-nav-section-one" class="usa-nav__submenu" hidden>
+<li class="usa-nav__submenu-item "><a class="usa-nav__link" target="_self" href="https://science.nasa.gov/earth/explore/" rel="noopener">Explore Earth Science</a></li>
+<li class="usa-nav__submenu-item "><a class="usa-nav__link" target="_self" href="https://science.nasa.gov/earth/explore/agriculture/" rel="noopener">Agriculture</a></li>
+<li class="usa-nav__submenu-item "><a class="usa-nav__link" target="_self" href="https://science.nasa.gov/earth/explore/air-quality/" rel="noopener">Air Quality</a></li>
+<li class="usa-nav__submenu-item "><a class="usa-nav__link" target="_self" href="https://science.nasa.gov/climate-change/" rel="noopener">Climate Change</a></li>
+<li class="usa-nav__submenu-item "><a class="usa-nav__link" 
