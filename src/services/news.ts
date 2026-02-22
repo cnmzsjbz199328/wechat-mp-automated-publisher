@@ -57,17 +57,50 @@ abstract class BaseRssProvider implements NewsProvider {
    * Specific providers can override this if the XML structure is unique.
    */
   protected parseItem(content: string): NewsItem | null {
-    const title = content.match(/<title>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/title>/i)?.[1] ||
-      content.match(/<title>([\s\S]*?)<\/title>/i)?.[1];
+    const titleMatch = content.match(/<title>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/title>/i);
+    const title = titleMatch?.[1] || titleMatch?.[2];
+
     const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i)?.[1];
     const link = content.match(/<link>([\s\S]*?)<\/link>/i)?.[1];
 
-    // 1. Extract description (Flexible with whitespace between tags)
-    let description =
-      content.match(/<description>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/description>/i)?.[1] ||
-      content.match(/<description>([\s\S]*?)<\/description>/i)?.[1] ||
-      content.match(/<content:encoded>[\s\S]*?<!\[CDATA\[([\s\S]*?)\]\]>[\s\S]*?<\/content:encoded>/i)?.[1] ||
-      content.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/i)?.[1];
+    // 1. Extract potential descriptions from multiple tags
+    const descMatch = content.match(/<description>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/description>/i);
+    const encodedMatch = content.match(/<content:encoded>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/content:encoded>/i);
+
+    let descRaw = descMatch?.[1] || descMatch?.[2] || "";
+    let encodedRaw = encodedMatch?.[1] || encodedMatch?.[2] || "";
+
+    // Helper to clean and decode
+    const clean = (str: string) => {
+      if (!str) return "";
+      return str
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/&lsquo;/g, "‘")
+        .replace(/&rsquo;/g, "’")
+        .replace(/&ldquo;/g, "“")
+        .replace(/&rdquo;/g, "”")
+        .replace(/&hellip;/g, "...")
+        .replace(/&#8211;/g, "–")
+        .replace(/&#8212;/g, "—")
+        .replace(/&#8216;/g, "‘")
+        .replace(/&#8217;/g, "’")
+        .replace(/&#8220;/g, "“")
+        .replace(/&#8221;/g, "”")
+        .replace(/<[^>]*>?/gm, '') // Strip HTML tags
+        .trim();
+    };
+
+    const descClean = clean(descRaw);
+    const encodedClean = clean(encodedRaw);
+
+    // Choose the most substantial one
+    // Some feeds (like NASA/LitHub) truncate <description> and put full text in <content:encoded>
+    let description = (encodedClean.length > descClean.length) ? encodedClean : descClean;
 
     // 2. Extract image URL
     let imageUrl = content.match(/<media:content[^>]+url="([^"]+)"/i)?.[1] ||
@@ -79,26 +112,10 @@ abstract class BaseRssProvider implements NewsProvider {
       if (imgMatch) imageUrl = imgMatch[1];
     }
 
-    // 3. Cleanup: Decode common entities and strip HTML
-    if (description) {
-      description = description
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#039;/g, "'")
-        .replace(/&#39;/g, "'")
-        .replace(/<[^>]*>?/gm, '') // Strip HTML tags
-        .trim();
-
-      // USER REQUEST: Remvoe truncation, show everything
-      // if (description.length > 500) { description = description.substring(0, 480) + '...'; }
-    }
-
     if (!title || !pubDate) return null;
 
     return {
-      title,
+      title: clean(title),
       pubDate,
       link,
       source: this.sourceName,

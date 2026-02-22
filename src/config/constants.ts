@@ -9,7 +9,13 @@ export const STYLES = {
   newsItem: 'padding:16px 0;border-bottom:1px solid #f0f0f0;display:flex;flex-direction:column;gap:8px;',
   newsTitle: 'font-size:16px;font-weight:700;color:#111827;line-height:1.4;',
   newsMeta: 'font-size:12px;color:#6b7280;display:flex;justify-content:between;',
-  newsBadge: 'background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:bold;margin-right:8px;'
+  newsBadge: 'background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:bold;margin-right:8px;',
+  vocabContainer: 'margin:30px 0;padding:20px;border-top:1px solid #eee;',
+  vocabTitle: 'font-size:13px;color:#999;font-weight:bold;margin-bottom:25px;letter-spacing:1px;text-transform:uppercase;',
+  vocabItem: 'margin-bottom:24px;',
+  vocabWord: 'font-size:18px;font-weight:bold;color:#1a1a1a;margin-right:8px;',
+  vocabMeta: 'font-size:13px;color:#888;',
+  vocabEx: 'font-size:14px;color:#555;line-height:1.6;font-style:normal;'
 };
 
 export const API_URLS = {

@@ -56,22 +56,30 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
   const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  // Parse Vocabulary into study cards
+  // Parse Vocabulary into clean list items
   const vocabItems = aiSummary
-    .split(/\n+/)
+    .split('\n')
     .map(l => l.trim())
-    .filter(l => l.includes('**'))
-    .map(l => {
-      const wordMatch = l.match(/\*\*(.*?)\*\*(.*?): (.*)/);
-      if (wordMatch) {
+    .filter(l => l.includes('|'))
+    .map(line => {
+      const parts = line.split('|').map(p => p.trim());
+      if (parts.length >= 4) {
+        const [word, type, def, example] = parts;
+        // Highlight word in example (case insensitive)
+        const highlightedEx = example.replace(
+          new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+          '<span class="text-primary font-medium">$1</span>'
+        );
         return `
-            <div class="p-4 rounded-xl bg-slate-800/30 border border-slate-700/50 hover:border-primary/30 transition-all hover:bg-slate-800/50">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-primary font-bold text-lg">${wordMatch[1]}</span>
-                <span class="text-xs text-slate-500 font-medium">${wordMatch[2]}</span>
-              </div>
-              <p class="text-xs text-slate-400 leading-relaxed italic border-l-2 border-slate-700 pl-3">${wordMatch[3]}</p>
-            </div>`;
+          <div class="mb-8 last:mb-0">
+            <div class="flex items-baseline gap-3 mb-1.5">
+              <span class="text-xl font-bold text-slate-100 tracking-tight">${word}</span>
+              <span class="text-[13px] text-slate-500 font-medium">${type} ${def}</span>
+            </div>
+            <p class="text-[15px] text-slate-400 leading-relaxed font-normal">
+              "${highlightedEx}"
+            </p>
+          </div>`;
       }
       return '';
     }).join('');
@@ -88,8 +96,6 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
   <script>tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ primary:'#137fec' }, fontFamily:{ sans:['Inter','sans-serif'] } } } }</script>
   <style>
     body { font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
-    .glass { background:rgba(255,255,255,0.02); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.05); }
-    /* Remove strict line clamping to show full abstract */
   </style>
 </head>
 <body class="dark bg-[#0a0f14] text-slate-100 min-h-screen pb-28">
@@ -119,7 +125,7 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
 
 <main class="max-w-2xl mx-auto px-6 py-8">
 
-  <!-- Main Feed Section (At Top) -->
+  <!-- Main Feed Section -->
   <section class="mb-16">
     <div class="flex items-center gap-4 mb-8">
       <h2 class="text-xs font-black tracking-[0.2em] text-slate-500 uppercase">Latest Reports</h2>
@@ -128,26 +134,15 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
     ${newsCards(news)}
   </section>
 
-  <!-- AI Vocabulary Section (At Bottom) -->
-  <section id="ai-study" class="relative">
-    <div class="absolute -top-24 -left-24 w-64 h-64 bg-primary/10 blur-[100px] rounded-full pointer-events-none"></div>
-    <div class="p-8 rounded-3xl border border-white/5 bg-slate-900/50 glass relative overflow-hidden">
-      <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-            <span class="material-symbols-outlined text-3xl">school</span>
-          </div>
-          <div>
-            <h3 class="text-[10px] font-black text-primary uppercase tracking-[0.15em] mb-1">Language Arts</h3>
-            <p class="text-xl font-black text-white">今日阅读难词汇总</p>
-          </div>
-        </div>
-        <div class="text-[10px] font-bold text-slate-600 border border-slate-800 px-2 py-1 rounded">5 UNITS</div>
-      </div>
-      
-      <div class="grid gap-4">
-        ${vocabItems || `<p class="text-sm text-slate-500 italic py-4">正在从今日资讯中归纳难点词汇...</p>`}
-      </div>
+  <!-- AI Vocabulary Section -->
+  <section id="ai-study" class="relative py-12 border-t border-slate-800/50">
+    <div class="flex items-center justify-between mb-10">
+      <h3 class="text-sm font-bold text-slate-500 tracking-wide">今日阅读难词汇总</h3>
+      <div class="w-8 h-px bg-slate-800"></div>
+    </div>
+    
+    <div class="space-y-2">
+      ${vocabItems || `<p class="text-sm text-slate-500 italic py-4">正在从今日资讯中归纳难点词汇...</p>`}
     </div>
   </section>
 

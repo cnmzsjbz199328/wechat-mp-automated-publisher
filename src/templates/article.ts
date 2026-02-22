@@ -2,13 +2,35 @@ import { NewsItem } from '../types';
 import { STYLES } from '../config/constants';
 
 /**
- * Very basic markdown to HTML formatter for WeChat's limited environment.
+ * Formats the structured vocabulary list for WeChat's environment.
  */
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#111;background-color:#fff3cd;padding:0 4px;border-radius:4px;">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<li style="margin-bottom:12px;list-style:none;padding-left:0;border-left:4px solid #137fec;padding:8px 12px;background:#f9fafb;border-radius:0 8px 8px 0;">$1</li>')
-    .replace(/\n/g, '<br/>');
+function formatVocab(aiSummary: string): string {
+  return aiSummary
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.includes('|'))
+    .map(line => {
+      const parts = line.split('|').map(p => p.trim());
+      if (parts.length >= 4) {
+        const [word, type, def, example] = parts;
+        // Basic highlight for WeChat (bolding the keyword in example)
+        const highlightedEx = example.replace(
+          new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+          `<span style="color:#137fec;font-weight:bold;">$1</span>`
+        );
+        return `
+          <div style="${STYLES.vocabItem}">
+            <div style="display:flex;align-items:baseline;margin-bottom:4px;">
+              <span style="${STYLES.vocabWord}">${word}</span>
+              <span style="${STYLES.vocabMeta}">${type} ${def}</span>
+            </div>
+            <div style="${STYLES.vocabEx}">
+              "${highlightedEx}"
+            </div>
+          </div>`;
+      }
+      return '';
+    }).join('');
 }
 
 export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string {
@@ -36,7 +58,7 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
         <p style="${STYLES.subtitle}">Global Insights & Language Study</p>
       </div>
 
-      <!-- Feed Section (Moved to top) -->
+      <!-- Feed Section -->
       <div style="${STYLES.sectionCard}">
         <div style="${STYLES.sectionTitle}">
           <span style="margin-right:8px;">⚡</span> 核心简报
@@ -44,17 +66,13 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
         ${newsHtml}
       </div>
 
-      <!-- AI Vocabulary Card (Moved to bottom) -->
-      <div style="${STYLES.sectionCard};border:1px solid #e5e7eb;background:#fff;">
-        <div style="${STYLES.sectionTitle};color:#137fec;">
-          <span style="margin-right:8px;">📚</span> 英语难词释义
+      <!-- Clean Vocabulary Section -->
+      <div style="${STYLES.vocabContainer}">
+        <div style="${STYLES.vocabTitle}">
+          今日阅读难词汇总
         </div>
-        <div style="font-size:15px;line-height:1.6;color:#374151;">
-          <ul style="padding:0;margin:0;">
-            ${formatMarkdown(aiSummary)}
-          </ul>
-        </div>
-        <div style="margin-top:16px;font-size:12px;color:#9ca3af;font-style:italic;">
+        ${formatVocab(aiSummary)}
+        <div style="margin-top:20px;font-size:11px;color:#bbb;font-style:italic;">
           * 以上例句由 AI 结合今日新闻语境生成
         </div>
       </div>
