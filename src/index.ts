@@ -8,13 +8,6 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
-    // TEMP: confirm Worker egress IPv4 for WeChat whitelist
-    if (pathname === '/check-ip') {
-      const r = await fetch('https://api4.ipify.org?format=json');
-      const d = await r.json() as { ip: string };
-      return Response.json({ egressIpv4: d.ip });
-    }
-
     if (pathname !== '/finance-live' && pathname !== '/preview') {
 
       return Response.json({ status: 'ready' });
