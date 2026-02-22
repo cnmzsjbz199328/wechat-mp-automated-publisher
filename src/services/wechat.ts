@@ -14,7 +14,17 @@ export class WeChatService {
     const data = await res.json() as WeChatTokenResponse;
 
     if (data.errcode) {
-      throw new Error(`Failed to get access token: ${data.errmsg}`);
+      const errmsg = data.errmsg || '';
+      // Extract blocked IP from WeChat error for easy whitelist diagnosis
+      const ipMatch = errmsg.match(/invalid ip ([^\s,]+)/i);
+      if (ipMatch) {
+        throw new Error(
+          `[IP_WHITELIST_BLOCKED] Worker出口IP "${ipMatch[1]}" 未在微信白名单。` +
+          `请前往 微信公众平台 → 设置与开发 → 基本配置 → IP白名单 添加此IP。` +
+          `原始错误: ${errmsg}`
+        );
+      }
+      throw new Error(`Failed to get access token: ${errmsg}`);
     }
 
     return data.access_token;
