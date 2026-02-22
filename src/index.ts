@@ -3,14 +3,23 @@ import { WeChatService } from './services/wechat';
 import { NewsService } from './services/news';
 import { AIService } from './services/ai';
 import { generateArticleHtml } from './templates/article';
+import { generatePreviewShell } from './templates/preview';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
-    if (pathname !== '/finance-live' && pathname !== '/preview') {
-
+    if (pathname !== '/finance-live' && pathname !== '/preview' && pathname !== '/preview-html') {
       return Response.json({ status: 'ready' });
+    }
+
+    // /preview-html: browser-renderable phone preview (returns text/html)
+    if (pathname === '/preview-html') {
+      const news = await new NewsService().fetchYahooFinanceNews();
+      const aiSummary = await new AIService(env).processWithAI(news);
+      const articleHtml = generateArticleHtml(aiSummary, news);
+      const html = generatePreviewShell(articleHtml);
+      return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
 
