@@ -131,15 +131,11 @@ abstract class BaseRssProvider implements NewsProvider {
  * Concrete Providers for different domains
  */
 class FinanceProvider extends BaseRssProvider {
-  constructor() { super(RSS_SOURCES.FINANCE, 'CNBC'); }
+  constructor() { super(RSS_SOURCES.FINANCE, 'MarketWatch'); }
 }
 
 class NasaProvider extends BaseRssProvider {
   constructor() { super(RSS_SOURCES.NASA, 'NASA'); }
-}
-
-class LitHubProvider extends BaseRssProvider {
-  constructor() { super(RSS_SOURCES.LITHUB, 'LitHub'); }
 }
 
 class ArsProvider extends BaseRssProvider {
@@ -182,7 +178,6 @@ export class NewsFactory {
     const d = domain?.toUpperCase();
     switch (d) {
       case 'NASA': return new NasaProvider();
-      case 'LITHUB': return new LitHubProvider();
       case 'ARS': return new ArsProvider();
       case 'FINANCE':
       default: return new FinanceProvider();
@@ -190,11 +185,3 @@ export class NewsFactory {
   }
 }
 
-/**
- * Legacy support for NewsService (defaulting to Finance/CNBC)
- */
-export class NewsService {
-  async fetchYahooFinanceNews(): Promise<NewsItem[]> {
-    return NewsFactory.getProvider('FINANCE').fetchNews();
-  }
-}

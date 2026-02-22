@@ -22,14 +22,12 @@ export const API_URLS = {
   WECHAT_TOKEN: 'https://api.weixin.qq.com/cgi-bin/token',
   WECHAT_MEDIA_UPLOAD: 'https://api.weixin.qq.com/cgi-bin/material/add_material',
   WECHAT_DRAFT_ADD: 'https://api.weixin.qq.com/cgi-bin/draft/add',
-  YAHOO_FINANCE_RSS: 'https://finance.yahoo.com/news/rssindex',
   DEFAULT_THUMB_IMAGE: 'https://picsum.photos/id/1070/900/500.jpg'
 };
 
 export const RSS_SOURCES: Record<string, string> = {
-  FINANCE: 'https://www.cnbc.com/id/100003114/device/rss/rss.html',
+  FINANCE: 'http://feeds.marketwatch.com/marketwatch/topstories',
   NASA: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
-  LITHUB: 'https://lithub.com/feed/',
   ARS: 'https://feeds.arstechnica.com/arstechnica/index'
 };
 
