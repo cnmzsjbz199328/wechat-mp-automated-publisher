@@ -7,6 +7,9 @@ export interface Env {
 export interface NewsItem {
   title: string;
   pubDate: string;
+  link?: string;
+  source?: string;
+  imageUrl?: string;
 }
 
 export interface WeChatTokenResponse {

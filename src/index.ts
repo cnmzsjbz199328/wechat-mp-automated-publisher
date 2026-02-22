@@ -13,14 +13,15 @@ export default {
       return Response.json({ status: 'ready' });
     }
 
-    // /preview-html: browser-renderable phone preview (returns text/html)
+    // /preview-html: modern browser preview with real images and AI bullets
     if (pathname === '/preview-html') {
       const news = await new NewsService().fetchYahooFinanceNews();
       const aiSummary = await new AIService(env).processWithAI(news);
       const articleHtml = generateArticleHtml(aiSummary, news);
-      const html = generatePreviewShell(articleHtml);
+      const html = generatePreviewShell(articleHtml, news, aiSummary);
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
+
 
 
     // Phase 1 preview: news + AI + HTML only (no WeChat)

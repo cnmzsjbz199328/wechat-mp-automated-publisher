@@ -27,13 +27,17 @@ export class NewsService {
       const c = match[1];
       const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || c.match(/<title>([\s\S]*?)<\/title>/)?.[1];
       const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1];
+      const link = c.match(/<link>([\s\S]*?)<\/link>/)?.[1];
+      const source = c.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1];
+      const imageUrl = c.match(/<media:content[^>]+url="([^"]+)"/)?.[1];
 
       if (t && d) {
-        items.push({ title: t, pubDate: d });
+        items.push({ title: t, pubDate: d, link, source, imageUrl });
       }
 
       if (items.length >= 5) break;
     }
+
 
     if (items.length === 0) {
       throw new Error('No news items fetched — RSS source may have changed or is unreachable');
