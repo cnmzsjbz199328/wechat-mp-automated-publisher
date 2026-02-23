@@ -36,3 +36,11 @@ export interface WeChatDraftResponse {
   errcode?: number;
   errmsg?: string;
 }
+
+/** Structured output from AIService.processWithAI */
+export interface AIOutput {
+  /** Pipe-delimited vocab lines for rendering in article */
+  vocab: string;
+  /** One-sentence Chinese overview for WeChat article digest field (max ~120 chars) */
+  digest: string;
+}

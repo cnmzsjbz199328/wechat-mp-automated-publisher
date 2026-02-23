@@ -84,7 +84,7 @@ export class WeChatService {
     }
   }
 
-  async createDraft(token: string, title: string, author: string, content: string, thumbMediaId: string): Promise<WeChatDraftResponse> {
+  async createDraft(token: string, title: string, author: string, content: string, thumbMediaId: string, digest?: string): Promise<WeChatDraftResponse> {
     const url = `${API_URLS.WECHAT_DRAFT_ADD}?access_token=${token}`;
     const draftRes = await fetch(url, {
       method: 'POST',
@@ -94,7 +94,8 @@ export class WeChatService {
           author,
           content,
           thumb_media_id: thumbMediaId,
-          show_cover_pic: 1
+          show_cover_pic: 1,
+          ...(digest ? { digest: digest.substring(0, 120) } : {})
         }]
       })
     });

@@ -1,0 +1,12 @@
+﻿=== DIGEST ===
+æ¬ææ¶µçä¸ªäººè´¢å¯ç®¡çãè¡ç¥¨å¸åºåæãè¯åå¼ååé¢å¯¼äººè´¢å¯æèµç­å¤ä¸ªä¸»é¢ã
+
+=== VOCAB ===
+Dovish | adj. | dovish Fed | A dovish Fed means a more accommodative monetary policy.
+Legs | n. | still has legs | The international stock story still has legs, meaning it is still performing well.
+Pitted | v. | pitted a new weight-loss drug | Novo Nordisk pitted a new weight-loss drug against Eli Lilly.
+Benign | adj. | benign inflation | The current inflation rate is benign, meaning it is low and not threatening.
+Subsidy | n. | global subsidy renewals | Global subsidy renewals provide strong tailwinds for solar developers.
+
+=== htmlLength ===
+12682

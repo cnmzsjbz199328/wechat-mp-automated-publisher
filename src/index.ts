@@ -33,23 +33,24 @@ export default {
       // 1. Fetch news for the specific domain
       const news = await newsProvider.fetchNews();
 
-      // 2. Process with AI for vocabulary (NASA descriptions are cleaned at parse level)
-      const aiSummary = await aiService.processWithAI(news);
+      // 2. Process with AI for vocabulary + digest (single call)
+      const aiOutput = await aiService.processWithAI(news);
 
       // 3. Action: Browser Preview (HTML)
       if (action === 'preview-html') {
-        const html = generatePreviewShell(news, aiSummary);
+        const html = generatePreviewShell(news, aiOutput.vocab, aiOutput.digest);
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       }
 
       // 4. Action: JSON Preview
       if (action === 'preview') {
-        const htmlContent = generateArticleHtml(aiSummary, news);
+        const htmlContent = generateArticleHtml(aiOutput.vocab, news);
         return Response.json({
           domain,
           newsCount: news.length,
           news,
-          aiSummary,
+          digest: aiOutput.digest,
+          vocab: aiOutput.vocab,
           htmlLength: htmlContent.length,
           htmlPreview: htmlContent.substring(0, 300) + '...',
         });
@@ -79,13 +80,14 @@ export default {
           ARS: '【科技深思考】Ars Technica 技术洞察'
         };
 
-        const htmlContent = generateArticleHtml(aiSummary, news);
+        const htmlContent = generateArticleHtml(aiOutput.vocab, news);
         const draftRes = await wechatService.createDraft(
           token,
           titles[domain] || `【${domain}】今日动态预览`,
           '大侠',
           htmlContent,
-          thumbMediaId
+          thumbMediaId,
+          aiOutput.digest
         );
 
         return Response.json({ domain, result: draftRes });

@@ -85,7 +85,7 @@ function vocabSection(aiSummary: string): string {
   return items || `<p class="vocab-empty">正在从今日资讯中归纳难点词汇...</p>`;
 }
 
-export function generatePreviewShell(news: NewsItem[], aiSummary: string): string {
+export function generatePreviewShell(news: NewsItem[], aiSummary: string, digest?: string): string {
   const [hero, ...rest] = news;
   const source = news[0]?.source || 'News';
   const dateStr = new Date().toLocaleDateString('zh-CN', {
@@ -353,6 +353,28 @@ export function generatePreviewShell(news: NewsItem[], aiSummary: string): strin
       padding: 12px 0;
     }
 
+    /* ── Digest ── */
+    .digest-block {
+      margin-bottom: 32px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(78,142,247,0.15);
+    }
+    .digest-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .digest-text {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--text-secondary);
+    }
+
     /* ── Footer ── */
     .page-footer {
       margin-top: 56px;
@@ -368,6 +390,13 @@ export function generatePreviewShell(news: NewsItem[], aiSummary: string): strin
 </head>
 <body>
 <main>
+
+  <!-- Digest / Overview -->
+  ${digest ? `
+  <div class="digest-block">
+    <div class="digest-label">本期概览</div>
+    <p class="digest-text">${digest}</p>
+  </div>` : ''}
 
   <!-- Latest Reports -->
   <section>
