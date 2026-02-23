@@ -75,7 +75,7 @@ export default {
 
         // Domain-specific titles
         const titles: Record<string, string> = {
-          FINANCE: '【实时追踪】美股动态 & AI解读',
+          FINANCE: '美国金融动态',
           NASA: '【星际探索】NASA 航天前沿速递',
           ARS: '【科技深思考】Ars Technica 技术洞察'
         };

@@ -74,23 +74,26 @@ abstract class BaseRssProvider implements NewsProvider {
     const clean = (str: string) => {
       if (!str) return "";
       return str
+        // Decode numeric hex entities first (e.g. &#x2019; → ')
+        .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+        // Decode numeric decimal entities (e.g. &#8217; → ')
+        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+        // Named entities
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
         .replace(/&#039;/g, "'")
         .replace(/&#39;/g, "'")
-        .replace(/&lsquo;/g, "‘")
-        .replace(/&rsquo;/g, "’")
-        .replace(/&ldquo;/g, "“")
-        .replace(/&rdquo;/g, "”")
-        .replace(/&hellip;/g, "...")
-        .replace(/&#8211;/g, "–")
-        .replace(/&#8212;/g, "—")
-        .replace(/&#8216;/g, "‘")
-        .replace(/&#8217;/g, "’")
-        .replace(/&#8220;/g, "“")
-        .replace(/&#8221;/g, "”")
+        .replace(/&lsquo;/g, '\u2018')
+        .replace(/&rsquo;/g, '\u2019')
+        .replace(/&ldquo;/g, '\u201c')
+        .replace(/&rdquo;/g, '\u201d')
+        .replace(/&hellip;/g, '…')
+        .replace(/&ndash;/g, '–')
+        .replace(/&mdash;/g, '—')
+        .replace(/&nbsp;/g, ' ')
         .replace(/<[^>]*>?/gm, '') // Strip HTML tags
         .trim();
     };

@@ -1,23 +1,32 @@
 import { NewsItem } from '../types';
 
-// ── Inline style tokens (mirrors preview.ts design for WeChat compatibility) ──
+// ── Color tokens ──
 const C = {
-  bg: '#0b0f15',
-  surface: '#111720',
-  border: '#1a2030',
-  textPri: '#f0f2f5',
-  textSec: '#7a8494',
-  textMuted: '#3d4553',
+  bg: '#0d1117',
+  border: '#21262d',
+  textPri: '#e6edf3',
+  textSec: '#8b949e',
+  textMuted: '#484f58',
   accent: '#4e8ef7',
-  accentDim: 'rgba(78,142,247,0.12)',
-  accentBorder: 'rgba(78,142,247,0.25)',
+  accentDim: 'rgba(78,142,247,0.1)',
+  accentBorder: 'rgba(78,142,247,0.3)',
 };
+
+// ── Section divider (no flex required) ──
+function sectionLabel(text: string): string {
+  return `
+<p style="font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${C.textMuted};margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid ${C.border};">${text}</p>`;
+}
+
+function sourceBadge(source: string): string {
+  return `<span style="display:inline-block;padding:2px 10px;border-radius:99px;background:${C.accentDim};border:1px solid ${C.accentBorder};font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${C.accent};">${source}</span>`;
+}
 
 function shortUrl(url: string): string {
   try {
     const u = new URL(url);
     const p = u.hostname + u.pathname.replace(/\/$/, '');
-    return p.length > 52 ? p.slice(0, 50) + '…' : p;
+    return p.length > 50 ? p.slice(0, 48) + '…' : p;
   } catch { return url; }
 }
 
@@ -29,42 +38,32 @@ function formatDate(iso: string): string {
   } catch { return iso; }
 }
 
-function sourceBadge(source: string): string {
-  return `<span style="display:inline-block;padding:2px 10px;border-radius:99px;background:${C.accentDim};border:1px solid ${C.accentBorder};font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:${C.accent};margin-bottom:12px;">${source}</span>`;
-}
-
 function heroCard(item: NewsItem): string {
   return `
-<div style="margin-bottom:48px;">
-  ${item.imageUrl ? `
-  <div style="width:100%;border-radius:14px;overflow:hidden;margin-bottom:20px;border:1px solid ${C.border};">
-    <img src="${item.imageUrl}" alt="${item.title}" style="width:100%;display:block;object-fit:cover;aspect-ratio:16/9;"/>
-  </div>` : ''}
-  ${sourceBadge(item.source || 'News')}
-  <h2 style="font-size:22px;font-weight:800;line-height:1.35;color:${C.textPri};margin:0 0 14px;font-family:Georgia,serif;">${item.title}</h2>
-  <p style="font-size:14px;line-height:1.85;color:${C.textSec};margin:0;">${item.aiAbstract || item.description || ''}</p>
-  <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
-    <span style="font-size:10px;color:${C.textMuted};font-weight:500;white-space:nowrap;">${formatDate(item.pubDate)}</span>
-    ${item.link ? `<a href="${item.link}" style="font-size:10px;color:${C.textMuted};text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;" target="_blank">${shortUrl(item.link)}</a>` : ''}
-  </div>
+<div style="margin-bottom:40px;">
+  ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:12px;margin-bottom:16px;"/>` : ''}
+  <p style="margin:0 0 10px;">${sourceBadge(item.source || 'News')}</p>
+  <h2 style="font-size:20px;font-weight:800;line-height:1.4;color:${C.textPri};margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;">${item.title}</h2>
+  <p style="font-size:14px;line-height:1.8;color:${C.textSec};margin:0 0 10px;">${item.aiAbstract || item.description || ''}</p>
+  <p style="margin:0;">
+    <span style="font-size:10px;color:${C.textMuted};font-weight:500;">${formatDate(item.pubDate)}</span>
+    ${item.link ? `&nbsp;&nbsp;<a href="${item.link}" style="font-size:10px;color:${C.textMuted};text-decoration:none;" target="_blank">${shortUrl(item.link)}</a>` : ''}
+  </p>
 </div>`;
 }
 
 function secondaryCard(item: NewsItem): string {
   return `
-<div style="padding:28px 0;border-top:1px solid ${C.border};">
-  ${item.imageUrl ? `
-  <div style="width:100%;border-radius:10px;overflow:hidden;margin-bottom:16px;border:1px solid ${C.border};">
-    <img src="${item.imageUrl}" alt="${item.title}" style="width:100%;display:block;object-fit:cover;aspect-ratio:3/1;"/>
-  </div>` : ''}
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-    <span style="font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:${C.textMuted};">${item.source || 'News'}</span>
-    <span style="width:3px;height:3px;border-radius:50%;background:${C.textMuted};opacity:0.4;display:inline-block;"></span>
+<div style="padding:24px 0;border-top:1px solid ${C.border};">
+  ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:8px;margin-bottom:14px;"/>` : ''}
+  <p style="margin:0 0 8px;">
+    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${C.textMuted};">${item.source || 'News'}</span>
+    <span style="color:${C.textMuted};margin:0 5px;">·</span>
     <span style="font-size:9px;color:${C.textMuted};font-weight:500;">${formatDate(item.pubDate)}</span>
-  </div>
-  <h3 style="font-size:17px;font-weight:700;line-height:1.4;color:${C.textPri};margin:0 0 10px;font-family:Georgia,serif;">${item.title}</h3>
-  <p style="font-size:13px;line-height:1.8;color:${C.textSec};margin:0;">${item.aiAbstract || item.description || ''}</p>
-  ${item.link ? `<a href="${item.link}" style="display:block;margin-top:10px;font-size:10px;color:${C.textMuted};text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" target="_blank">${shortUrl(item.link)}</a>` : ''}
+  </p>
+  <h3 style="font-size:16px;font-weight:700;line-height:1.4;color:${C.textPri};margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;">${item.title}</h3>
+  <p style="font-size:13px;line-height:1.75;color:${C.textSec};margin:0 0 8px;">${item.aiAbstract || item.description || ''}</p>
+  ${item.link ? `<p style="margin:0;"><a href="${item.link}" style="font-size:10px;color:${C.textMuted};text-decoration:none;" target="_blank">${shortUrl(item.link)}</a></p>` : ''}
 </div>`;
 }
 
@@ -80,61 +79,43 @@ function vocabSection(aiSummary: string): string {
       const clean = example.replace(/^["""''']+|["""''']+$/g, '').trim();
       const highlighted = clean.replace(
         new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)`, 'gi'),
-        `<span style="color:${C.accent};font-style:normal;font-weight:600;">$1</span>`
+        `<span style="color:${C.accent};font-style:normal;font-weight:700;">$1</span>`
       );
       return `
-<div style="padding:20px 0;border-bottom:1px solid ${C.border};">
-  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;">
-    <span style="font-size:21px;font-weight:800;color:${C.textPri};font-family:Georgia,serif;letter-spacing:-0.01em;">${word}</span>
-    <span style="font-size:11px;color:${C.textMuted};font-weight:500;">${pos}. ${def}</span>
-  </div>
+<div style="padding:18px 0;border-bottom:1px solid ${C.border};">
+  <p style="margin:0 0 5px;">
+    <span style="font-size:19px;font-weight:800;color:${C.textPri};font-family:Georgia,'Times New Roman',serif;letter-spacing:-0.01em;">${word}</span>
+    <span style="font-size:11px;color:${C.textMuted};font-weight:400;margin-left:8px;">${pos}. ${def}</span>
+  </p>
   <p style="font-size:13px;line-height:1.75;color:${C.textSec};font-style:italic;margin:0;">"${highlighted}"</p>
 </div>`;
     })
     .filter(Boolean)
     .join('');
 
-  return items || `<p style="font-size:13px;color:${C.textMuted};font-style:italic;padding:12px 0;">AI 词汇正在生成中...</p>`;
+  return items || `<p style="font-size:13px;color:${C.textMuted};font-style:italic;">AI 词汇正在生成中...</p>`;
 }
 
 export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string {
   const [hero, ...rest] = news;
   const source = news[0]?.source || 'News';
-  const year = new Date().getFullYear();
 
-  return `
-<div style="background:${C.bg};margin:0;padding:0;">
-<div style="max-width:680px;margin:0 auto;padding:40px 20px 60px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  return `<div style="background:${C.bg};padding:32px 16px 48px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:680px;margin:0 auto;">
 
-  <!-- Section Label -->
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:36px;">
-    <span style="font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${C.textMuted};white-space:nowrap;">Latest Reports</span>
-    <div style="flex:1;height:1px;background:linear-gradient(to right,${C.border},transparent);"></div>
-  </div>
+${sectionLabel('Latest Reports')}
 
-  <!-- Hero -->
-  ${hero ? heroCard(hero) : ''}
+${hero ? heroCard(hero) : ''}
 
-  <!-- Secondary Articles -->
-  ${rest.map(secondaryCard).join('')}
+${rest.map(secondaryCard).join('')}
 
-  <!-- Vocabulary Section -->
-  <div style="margin-top:64px;padding-top:40px;border-top:1px solid ${C.border};">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:32px;">
-      <span style="font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${C.textMuted};white-space:nowrap;">今日阅读难词汇总</span>
-      <div style="flex:1;height:1px;background:linear-gradient(to right,${C.border},transparent);"></div>
-    </div>
-    <div style="border-top:1px solid ${C.border};">
-      ${vocabSection(aiSummary)}
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div style="margin-top:56px;padding-top:24px;border-top:1px solid ${C.border};text-align:center;font-size:10px;color:${C.textMuted};line-height:1.9;letter-spacing:0.05em;">
-    数据源: ${source} · 由 AI 提供语言支持<br/>
-    © ${year} 大侠的读书笔记
-  </div>
-
+<div style="margin-top:48px;padding-top:32px;border-top:1px solid ${C.border};">
+${sectionLabel('今日阅读难词汇总')}
+<div style="border-top:1px solid ${C.border};">
+${vocabSection(aiSummary)}
 </div>
+</div>
+
+<p style="margin-top:40px;text-align:center;font-size:10px;color:${C.textMuted};line-height:1.8;">数据源: ${source}</p>
+
 </div>`;
 }
