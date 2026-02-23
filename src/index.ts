@@ -33,7 +33,11 @@ export default {
       // 1. Fetch news for the specific domain
       const news = await newsProvider.fetchNews();
 
-      // 2. Process with AI
+      // 2. Generate AI abstracts (clean text for each article)
+      const abstracts = await aiService.generateAbstracts(news);
+      news.forEach((item, i) => { item.aiAbstract = abstracts[i]; });
+
+      // 3. Process with AI for vocabulary
       const aiSummary = await aiService.processWithAI(news);
 
       // 3. Action: Browser Preview (HTML)

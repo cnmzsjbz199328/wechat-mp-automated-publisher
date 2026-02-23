@@ -39,9 +39,13 @@ export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string
   const newsHtml = news.map(n => `
     <div style="${STYLES.newsItem}">
       <div style="${STYLES.newsTitle}">${n.title}</div>
-      ${n.description ? `
+      ${(n.aiAbstract || n.description) ? `
       <div style="font-size:14px;color:#4b5563;line-height:1.7;margin:12px 0;text-align:justify;">
-        ${n.description}
+        ${n.aiAbstract || n.description}
+      </div>` : ''}
+      ${n.link ? `
+      <div style="margin-top:4px;">
+        <a href="${n.link}" style="font-size:11px;color:#9ca3af;text-decoration:none;word-break:break-all;" target="_blank">${n.link}</a>
       </div>` : ''}
       <div style="${STYLES.newsMeta}">
         <div style="display:flex;align-items:center;gap:8px;">

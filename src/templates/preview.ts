@@ -20,13 +20,15 @@ function newsCards(news: NewsItem[]): string {
         <div class="absolute bottom-0 left-0 right-0 p-6">
           <span class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">${hero.source || 'Breaking'}</span>
           <h2 class="text-2xl font-black text-white leading-tight">${hero.title}</h2>
-          <p class="text-sm text-slate-300 mt-3 leading-relaxed opacity-90">${hero.description || ''}</p>
+          <p class="text-sm text-slate-300 mt-3 leading-relaxed opacity-90">${hero.aiAbstract || hero.description || ''}</p>
+          ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-500 hover:text-slate-300 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
         </div>
       </div>` : `
       <div class="mb-10 p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
         <span class="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 block">${hero.source || 'News'}</span>
         <h2 class="text-3xl font-black text-white leading-snug">${hero.title}</h2>
-        <p class="text-base text-slate-400 mt-4 leading-relaxed">${hero.description || ''}</p>
+        <p class="text-base text-slate-400 mt-4 leading-relaxed">${hero.aiAbstract || hero.description || ''}</p>
+        ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-500 hover:text-slate-300 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
         <p class="text-xs text-slate-500 mt-4 font-medium italic">${formatDate(hero.pubDate)}</p>
       </div>`}
     </div>` : '';
@@ -40,7 +42,8 @@ function newsCards(news: NewsItem[]): string {
            <span class="text-[10px] text-slate-600 font-medium">${formatDate(n.pubDate)}</span>
         </div>
         <h3 class="text-lg font-bold text-slate-100 leading-snug group-hover:text-primary transition-colors">${n.title}</h3>
-        <p class="text-[13px] text-slate-400 mt-3 leading-relaxed">${n.description || ''}</p>
+        <p class="text-[13px] text-slate-400 mt-3 leading-relaxed">${n.aiAbstract || n.description || ''}</p>
+        ${n.link ? `<a href="${n.link}" class="text-[11px] text-slate-600 hover:text-slate-400 mt-1.5 block truncate transition-colors" target="_blank">${n.link}</a>` : ''}
       </div>
       ${n.imageUrl ? `
       <div class="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 shadow-xl ring-1 ring-white/5">

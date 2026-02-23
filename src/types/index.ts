@@ -11,6 +11,7 @@ export interface NewsItem {
   source?: string;
   imageUrl?: string;
   description?: string;
+  aiAbstract?: string;
 }
 
 export interface WeChatTokenResponse {

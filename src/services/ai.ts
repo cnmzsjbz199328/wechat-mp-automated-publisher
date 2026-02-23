@@ -1,5 +1,8 @@
 import { Env, NewsItem } from '../types';
 
+// Separates AI abstract outputs reliably
+const ABSTRACT_SEPARATOR = '---ITEM---';
+
 export class AIService {
   private env: Env;
 
@@ -38,6 +41,41 @@ export class AIService {
       console.error('AI Processing Error:', error);
       return 'AI 学习助手暂时不可用，请阅读原文积累词汇。';
     }
+  }
+
+  /**
+   * Generates a clean ~10-sentence English abstract for each news item.
+   * All items are processed in a single AI call.
+   */
+  async generateAbstracts(news: NewsItem[]): Promise<string[]> {
+    const calls = news.map(async (item) => {
+      const raw = (item.description || item.title || '').substring(0, 2000);
+
+      const prompt = `You are a professional news editor. Based on the information below, write a clean, well-structured English abstract of approximately 10 sentences.
+
+Requirements:
+- Cover the key facts, context, and significance of the story
+- Be written in clear, readable English suitable for language learners
+- Contain NO press contact details, NO "Share" buttons text, NO metadata labels, NO navigation links, NO "Related Terms", NO "Keep Exploring" sections
+- Start directly with the news content, no preamble
+
+Title: ${item.title}
+Content: ${raw}
+
+Write the abstract now:`;
+
+      try {
+        const response = await this.env.AI.run('@cf/meta/llama-3-8b-instruct', {
+          messages: [{ role: 'user', content: prompt }]
+        });
+        const text: string = ((response as any).response || '').trim();
+        return text || item.description || '';
+      } catch {
+        return item.description || '';
+      }
+    });
+
+    return Promise.all(calls);
   }
 }
 
