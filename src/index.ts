@@ -57,9 +57,20 @@ export default {
 
       // 5. Action: Live Publish to WeChat
       if (action === 'live') {
-        const htmlContent = generateArticleHtml(aiSummary, news);
         const token = await wechatService.getAccessToken();
-        const thumbMediaId = await wechatService.uploadThumb(token);
+
+        // Upload cover thumb + all article images concurrently
+        const [thumbMediaId, ...uploadedUrls] = await Promise.all([
+          wechatService.uploadThumb(token),
+          ...news.map(n =>
+            n.imageUrl ? wechatService.uploadImage(token, n.imageUrl) : Promise.resolve(null)
+          )
+        ]);
+
+        // Replace original image URLs with WeChat CDN URLs
+        news.forEach((n, i) => {
+          if (uploadedUrls[i]) n.imageUrl = uploadedUrls[i]!;
+        });
 
         // Domain-specific titles
         const titles: Record<string, string> = {
@@ -68,6 +79,7 @@ export default {
           ARS: '【科技深思考】Ars Technica 技术洞察'
         };
 
+        const htmlContent = generateArticleHtml(aiSummary, news);
         const draftRes = await wechatService.createDraft(
           token,
           titles[domain] || `【${domain}】今日动态预览`,

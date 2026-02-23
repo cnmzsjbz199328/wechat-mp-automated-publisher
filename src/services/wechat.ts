@@ -53,6 +53,37 @@ export class WeChatService {
     return data.thumb_media_id || data.media_id;
   }
 
+  /**
+   * Uploads an external image URL to WeChat's permanent material library.
+   * Returns the WeChat CDN URL (mmbiz.qpic.cn) for use in article content,
+   * or null if the fetch/upload fails (caller should omit the image gracefully).
+   */
+  async uploadImage(token: string, imageUrl: string): Promise<string | null> {
+    try {
+      const imgRes = await fetch(imageUrl, { redirect: 'follow' });
+      if (!imgRes.ok) return null;
+
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      const ext = contentType.includes('png') ? 'png' : contentType.includes('gif') ? 'gif' : 'jpg';
+      const arrayBuffer = await imgRes.arrayBuffer();
+      const blob = new Blob([arrayBuffer], { type: contentType });
+
+      const formData = new FormData();
+      formData.append('media', blob, `article_image.${ext}`);
+
+      const uploadRes = await fetch(
+        `${API_URLS.WECHAT_MEDIA_UPLOAD}?access_token=${token}&type=image`,
+        { method: 'POST', body: formData }
+      );
+
+      const data = await uploadRes.json() as WeChatMediaResponse;
+      if (data.errcode || !data.url) return null;
+      return data.url;         // e.g. https://mmbiz.qpic.cn/...
+    } catch {
+      return null;
+    }
+  }
+
   async createDraft(token: string, title: string, author: string, content: string, thumbMediaId: string): Promise<WeChatDraftResponse> {
     const url = `${API_URLS.WECHAT_DRAFT_ADD}?access_token=${token}`;
     const draftRes = await fetch(url, {

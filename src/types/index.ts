@@ -25,6 +25,7 @@ export interface WeChatMediaResponse {
   type: string;
   media_id: string;
   thumb_media_id?: string;
+  url?: string;          // returned by add_material for image uploads
   created_at: number;
   errcode?: number;
   errmsg?: string;
