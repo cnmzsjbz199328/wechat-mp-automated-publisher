@@ -11,42 +11,44 @@ function formatDate(iso: string): string {
 function newsCards(news: NewsItem[]): string {
   const [hero, ...rest] = news;
 
+  // Hero card: image on top, content cleanly below
   const heroCard = hero ? `
     <div class="block group mb-10">
       ${hero.imageUrl ? `
-      <div class="relative w-full aspect-video rounded-2xl overflow-hidden mb-6 shadow-2xl ring-1 ring-white/10">
+      <div class="w-full aspect-video rounded-2xl overflow-hidden mb-5 shadow-2xl ring-1 ring-white/10">
         <img src="${hero.imageUrl}" alt="${hero.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-        <div class="absolute bottom-0 left-0 right-0 p-6">
-          <span class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">${hero.source || 'Breaking'}</span>
-          <h2 class="text-2xl font-black text-white leading-tight">${hero.title}</h2>
-          <p class="text-sm text-slate-300 mt-3 leading-relaxed opacity-90">${hero.aiAbstract || hero.description || ''}</p>
-          ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-500 hover:text-slate-300 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
-        </div>
-      </div>` : `
-      <div class="mb-10 p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
-        <span class="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 block">${hero.source || 'News'}</span>
-        <h2 class="text-3xl font-black text-white leading-snug">${hero.title}</h2>
-        <p class="text-base text-slate-400 mt-4 leading-relaxed">${hero.aiAbstract || hero.description || ''}</p>
-        ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-500 hover:text-slate-300 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
-        <p class="text-xs text-slate-500 mt-4 font-medium italic">${formatDate(hero.pubDate)}</p>
-      </div>`}
+      </div>` : ''}
+      <div class="px-1">
+        <span class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">${hero.source || 'Breaking'}</span>
+        <h2 class="text-2xl font-black text-white leading-tight mb-3">${hero.title}</h2>
+        <p class="text-sm text-slate-400 leading-relaxed">${hero.aiAbstract || hero.description || ''}</p>
+        ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-600 hover:text-slate-400 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
+        <p class="text-[10px] text-slate-600 mt-3 font-medium">${formatDate(hero.pubDate)}</p>
+      </div>
     </div>` : '';
 
+  // Rest cards: fixed-height scrollable text area with 'More' fade indicator
   const restCards = rest.map(n => `
-    <div class="flex gap-6 group py-8 border-t border-slate-800/50 items-start transition-all">
+    <div class="flex gap-4 group py-7 border-t border-slate-800/50 items-start">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-3 mb-2">
            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${n.source || 'News'}</span>
            <span class="h-px w-4 bg-slate-800"></span>
            <span class="text-[10px] text-slate-600 font-medium">${formatDate(n.pubDate)}</span>
         </div>
-        <h3 class="text-lg font-bold text-slate-100 leading-snug group-hover:text-primary transition-colors">${n.title}</h3>
-        <p class="text-[13px] text-slate-400 mt-3 leading-relaxed">${n.aiAbstract || n.description || ''}</p>
-        ${n.link ? `<a href="${n.link}" class="text-[11px] text-slate-600 hover:text-slate-400 mt-1.5 block truncate transition-colors" target="_blank">${n.link}</a>` : ''}
+        <h3 class="text-[15px] font-bold text-slate-100 leading-snug mb-2 group-hover:text-primary transition-colors">${n.title}</h3>
+        <div class="relative">
+          <div class="h-[3.6rem] overflow-y-auto overscroll-contain scrollbar-none text-[13px] text-slate-400 leading-[1.8]">
+            ${n.aiAbstract || n.description || ''}
+          </div>
+          <div class="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[#0a0f14] to-transparent flex items-end pb-0.5">
+            <span class="text-[9px] text-slate-600 font-black uppercase tracking-widest pl-0.5">More ↕</span>
+          </div>
+        </div>
+        ${n.link ? `<a href="${n.link}" class="text-[10px] text-slate-700 hover:text-slate-500 mt-2 block truncate transition-colors" target="_blank">${n.link}</a>` : ''}
       </div>
       ${n.imageUrl ? `
-      <div class="w-28 h-28 rounded-xl overflow-hidden flex-shrink-0 shadow-xl ring-1 ring-white/5">
+      <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 shadow-xl ring-1 ring-white/5 mt-1">
         <img src="${n.imageUrl}" alt="${n.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
       </div>` : ''}
     </div>`).join('');
@@ -101,6 +103,8 @@ export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSu
   <script>tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ primary:'#137fec' }, fontFamily:{ sans:['Inter','sans-serif'] } } } }</script>
   <style>
     body { font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+    .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
   </style>
 </head>
 <body class="dark bg-[#0a0f14] text-slate-100 min-h-screen pb-28">
