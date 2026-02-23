@@ -1,34 +1,13 @@
 import { NewsItem } from '../types';
 
-// ── Color tokens ──
+/* ── Color tokens  (light/clean, mirrors mdnice style) ── */
 const C = {
-  bg: '#0d1117',
-  border: '#21262d',
-  textPri: '#e6edf3',
-  textSec: '#8b949e',
-  textMuted: '#484f58',
-  accent: '#4e8ef7',
-  accentDim: 'rgba(78,142,247,0.1)',
-  accentBorder: 'rgba(78,142,247,0.3)',
+  text: '#3a3a3a',
+  muted: '#888888',
+  accent: '#2980b9',
+  border: '#e5e5e5',
+  bgCode: '#f5f7fa',
 };
-
-// ── Section divider (no flex required) ──
-function sectionLabel(text: string): string {
-  return `
-<p style="font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${C.textMuted};margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid ${C.border};">${text}</p>`;
-}
-
-function sourceBadge(source: string): string {
-  return `<span style="display:inline-block;padding:2px 10px;border-radius:99px;background:${C.accentDim};border:1px solid ${C.accentBorder};font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${C.accent};">${source}</span>`;
-}
-
-function shortUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    const p = u.hostname + u.pathname.replace(/\/$/, '');
-    return p.length > 50 ? p.slice(0, 48) + '…' : p;
-  } catch { return url; }
-}
 
 function formatDate(iso: string): string {
   try {
@@ -38,35 +17,45 @@ function formatDate(iso: string): string {
   } catch { return iso; }
 }
 
+function shortUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.hostname + u.pathname.replace(/\/$/, '');
+  } catch { return url; }
+}
+
+/* ── Section sub-label (small-caps divider) ── */
+function sectionDivider(text: string): string {
+  return `<p style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:${C.muted};margin:32px 0 18px;padding-bottom:8px;border-bottom:1px solid ${C.border};text-align:left;word-break:break-word;">${text}</p>`;
+}
+
+/* ── Source + date meta line ── */
+function metaLine(item: NewsItem): string {
+  return `<p style="font-size:13px;color:${C.muted};margin:6px 0 12px;line-height:1.6;text-align:left;word-break:break-word;"><span style="color:${C.accent};font-weight:600;">${item.source || 'News'}</span>&nbsp;&nbsp;·&nbsp;&nbsp;${formatDate(item.pubDate)}</p>`;
+}
+
+/* ── Hero article (first item, full-height image) ── */
 function heroCard(item: NewsItem): string {
   return `
-<div style="margin-bottom:40px;">
-  ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:12px;margin-bottom:16px;"/>` : ''}
-  <p style="margin:0 0 10px;">${sourceBadge(item.source || 'News')}</p>
-  <h2 style="font-size:20px;font-weight:800;line-height:1.4;color:${C.textPri};margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;">${item.title}</h2>
-  <p style="font-size:14px;line-height:1.8;color:${C.textSec};margin:0 0 10px;">${item.aiAbstract || item.description || ''}</p>
-  <p style="margin:0;">
-    <span style="font-size:10px;color:${C.textMuted};font-weight:500;">${formatDate(item.pubDate)}</span>
-    ${item.link ? `&nbsp;&nbsp;<a href="${item.link}" style="font-size:10px;color:${C.textMuted};text-decoration:none;" target="_blank">${shortUrl(item.link)}</a>` : ''}
-  </p>
-</div>`;
+${item.imageUrl ? `<p style="margin:0 0 16px;"><img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:6px;"/></p>` : ''}
+${metaLine(item)}
+<p style="font-size:20px;font-weight:800;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 12px;text-align:left;word-break:break-word;">${item.title}</p>
+<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 10px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+${item.link ? `<p style="margin:0 0 4px;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
 }
 
+/* ── Secondary card (cropped 3:1 banner image) ── */
 function secondaryCard(item: NewsItem): string {
   return `
-<div style="padding:24px 0;border-top:1px solid ${C.border};">
-  ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:8px;margin-bottom:14px;"/>` : ''}
-  <p style="margin:0 0 8px;">
-    <span style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${C.textMuted};">${item.source || 'News'}</span>
-    <span style="color:${C.textMuted};margin:0 5px;">·</span>
-    <span style="font-size:9px;color:${C.textMuted};font-weight:500;">${formatDate(item.pubDate)}</span>
-  </p>
-  <h3 style="font-size:16px;font-weight:700;line-height:1.4;color:${C.textPri};margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;">${item.title}</h3>
-  <p style="font-size:13px;line-height:1.75;color:${C.textSec};margin:0 0 8px;">${item.aiAbstract || item.description || ''}</p>
-  ${item.link ? `<p style="margin:0;"><a href="${item.link}" style="font-size:10px;color:${C.textMuted};text-decoration:none;" target="_blank">${shortUrl(item.link)}</a></p>` : ''}
-</div>`;
+<p style="margin:22px 0 0;border-top:1px solid ${C.border};padding-top:22px;"></p>
+${item.imageUrl ? `<p style="margin:0 0 14px;overflow:hidden;border-radius:6px;"><img src="${item.imageUrl}" alt="" style="width:100%;display:block;aspect-ratio:3/1;object-fit:cover;"/></p>` : ''}
+${metaLine(item)}
+<p style="font-size:17px;font-weight:700;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 10px;text-align:left;word-break:break-word;">${item.title}</p>
+<p style="font-size:14px;line-height:1.8;color:${C.text};margin:0 0 8px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+${item.link ? `<p style="margin:0;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
 }
 
+/* ── Vocabulary section ── */
 function vocabSection(aiSummary: string): string {
   const items = aiSummary
     .split('\n')
@@ -79,43 +68,40 @@ function vocabSection(aiSummary: string): string {
       const clean = example.replace(/^["""''']+|["""''']+$/g, '').trim();
       const highlighted = clean.replace(
         new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)`, 'gi'),
-        `<span style="color:${C.accent};font-style:normal;font-weight:700;">$1</span>`
+        `<strong style="color:${C.accent};font-style:normal;">$1</strong>`
       );
       return `
-<div style="padding:18px 0;border-bottom:1px solid ${C.border};">
-  <p style="margin:0 0 5px;">
-    <span style="font-size:19px;font-weight:800;color:${C.textPri};font-family:Georgia,'Times New Roman',serif;letter-spacing:-0.01em;">${word}</span>
-    <span style="font-size:11px;color:${C.textMuted};font-weight:400;margin-left:8px;">${pos}. ${def}</span>
-  </p>
-  <p style="font-size:13px;line-height:1.75;color:${C.textSec};font-style:italic;margin:0;">"${highlighted}"</p>
-</div>`;
+<p style="margin:20px 0 4px;text-align:left;word-break:break-word;">
+  <span style="font-size:18px;font-weight:800;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;">${word}</span>
+  <span style="font-size:12px;color:${C.muted};margin-left:8px;">${pos}. ${def}</span>
+</p>
+<p style="font-size:13px;line-height:1.8;color:#666;font-style:italic;margin:4px 0 0;text-align:left;word-break:break-word;">${highlighted}</p>`;
     })
     .filter(Boolean)
     .join('');
 
-  return items || `<p style="font-size:13px;color:${C.textMuted};font-style:italic;">AI 词汇正在生成中...</p>`;
+  return items || `<p style="font-size:14px;color:${C.muted};font-style:italic;text-align:left;">AI 词汇正在生成中...</p>`;
 }
 
+/* ── Main export ── */
 export function generateArticleHtml(aiSummary: string, news: NewsItem[]): string {
   const [hero, ...rest] = news;
   const source = news[0]?.source || 'News';
 
-  return `<div style="background:${C.bg};padding:32px 16px 48px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;max-width:680px;margin:0 auto;">
+  return `<div style="font-family:Georgia,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:${C.text};line-height:1.8;padding:8px 0;max-width:680px;margin:0 auto;background:#fff;text-align:left;word-break:break-word;">
 
-${sectionLabel('Latest Reports')}
+${sectionDivider('Latest Reports')}
 
 ${hero ? heroCard(hero) : ''}
 
 ${rest.map(secondaryCard).join('')}
 
-<div style="margin-top:48px;padding-top:32px;border-top:1px solid ${C.border};">
-${sectionLabel('今日阅读难词汇总')}
-<div style="border-top:1px solid ${C.border};">
-${vocabSection(aiSummary)}
-</div>
-</div>
+<p style="margin:40px 0 0;border-top:1px solid ${C.border};"></p>
+${sectionDivider('今日阅读词汇')}
 
-<p style="margin-top:40px;text-align:center;font-size:10px;color:${C.textMuted};line-height:1.8;">数据源: ${source}</p>
+${vocabSection(aiSummary)}
+
+<p style="margin-top:36px;text-align:center;font-size:11px;color:${C.muted};letter-spacing:0.04em;">数据源: ${source}</p>
 
 </div>`;
 }
