@@ -3,194 +3,397 @@ import { NewsItem } from '../types';
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('zh-CN', {
-      year: 'numeric', month: 'short', day: 'numeric',
+      year: 'numeric', month: 'long', day: 'numeric',
     });
   } catch { return iso; }
 }
 
-function newsCards(news: NewsItem[]): string {
-  const [hero, ...rest] = news;
-
-  // Hero card: image on top, content cleanly below
-  const heroCard = hero ? `
-    <div class="block group mb-10">
-      ${hero.imageUrl ? `
-      <div class="w-full aspect-video rounded-2xl overflow-hidden mb-5 shadow-2xl ring-1 ring-white/10">
-        <img src="${hero.imageUrl}" alt="${hero.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
-      </div>` : ''}
-      <div class="px-1">
-        <span class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-primary/20 border border-primary/30 text-[10px] font-bold text-primary uppercase tracking-widest mb-3">${hero.source || 'Breaking'}</span>
-        <h2 class="text-2xl font-black text-white leading-tight mb-3">${hero.title}</h2>
-        <p class="text-sm text-slate-400 leading-relaxed">${hero.aiAbstract || hero.description || ''}</p>
-        ${hero.link ? `<a href="${hero.link}" class="text-[11px] text-slate-600 hover:text-slate-400 mt-2 block truncate transition-colors" target="_blank">${hero.link}</a>` : ''}
-        <p class="text-[10px] text-slate-600 mt-3 font-medium">${formatDate(hero.pubDate)}</p>
-      </div>
-    </div>` : '';
-
-  // Rest cards: fixed-height scrollable text area with 'More' fade indicator
-  const restCards = rest.map(n => `
-    <div class="flex gap-4 group py-7 border-t border-slate-800/50 items-start">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-3 mb-2">
-           <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${n.source || 'News'}</span>
-           <span class="h-px w-4 bg-slate-800"></span>
-           <span class="text-[10px] text-slate-600 font-medium">${formatDate(n.pubDate)}</span>
-        </div>
-        <h3 class="text-[15px] font-bold text-slate-100 leading-snug mb-2 group-hover:text-primary transition-colors">${n.title}</h3>
-        <div class="relative">
-          <div class="h-[3.6rem] overflow-y-auto overscroll-contain scrollbar-none text-[13px] text-slate-400 leading-[1.8]">
-            ${n.aiAbstract || n.description || ''}
-          </div>
-          <div class="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-[#0a0f14] to-transparent flex items-end pb-0.5">
-            <span class="text-[9px] text-slate-600 font-black uppercase tracking-widest pl-0.5">More ↕</span>
-          </div>
-        </div>
-        ${n.link ? `<a href="${n.link}" class="text-[10px] text-slate-700 hover:text-slate-500 mt-2 block truncate transition-colors" target="_blank">${n.link}</a>` : ''}
-      </div>
-      ${n.imageUrl ? `
-      <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 shadow-xl ring-1 ring-white/5 mt-1">
-        <img src="${n.imageUrl}" alt="${n.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"/>
-      </div>` : ''}
-    </div>`).join('');
-
-  return heroCard + restCards;
+/** Shorten a URL to a readable display string */
+function shortUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const path = u.pathname.replace(/\/$/, '');
+    const display = u.hostname + path;
+    return display.length > 52 ? display.substring(0, 50) + '…' : display;
+  } catch { return url; }
 }
 
-export function generatePreviewShell(articleHtml: string, news: NewsItem[], aiSummary: string): string {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  const dateStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+function heroCard(item: NewsItem): string {
+  return `
+    <article class="hero-article">
+      ${item.imageUrl ? `
+      <div class="hero-image">
+        <img src="${item.imageUrl}" alt="${item.title}">
+      </div>` : ''}
+      <div class="source-badge">${item.source || 'News'}</div>
+      <h2 class="hero-title">${item.title}</h2>
+      <p class="hero-body">${item.aiAbstract || item.description || ''}</p>
+      <div class="article-meta">
+        <time>${formatDate(item.pubDate)}</time>
+        ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener">${shortUrl(item.link)}</a>` : ''}
+      </div>
+    </article>`;
+}
 
-  // Parse Vocabulary into clean list items
-  const vocabItems = aiSummary
+function secondaryCard(item: NewsItem): string {
+  return `
+    <article class="secondary-article">
+      ${item.imageUrl ? `
+      <div class="secondary-image">
+        <img src="${item.imageUrl}" alt="${item.title}">
+      </div>` : ''}
+      <div class="secondary-content">
+        <div class="secondary-header">
+          <span class="secondary-source">${item.source || 'News'}</span>
+          <span class="dot"></span>
+          <time>${formatDate(item.pubDate)}</time>
+        </div>
+        <h3 class="secondary-title">${item.title}</h3>
+        <p class="secondary-body">${item.aiAbstract || item.description || ''}</p>
+        ${item.link ? `<a class="secondary-link" href="${item.link}" target="_blank" rel="noopener">${shortUrl(item.link)}</a>` : ''}
+      </div>
+    </article>`;
+}
+
+function vocabSection(aiSummary: string): string {
+  const items = aiSummary
     .split('\n')
     .map(l => l.trim())
     .filter(l => l.includes('|'))
     .map(line => {
       const parts = line.split('|').map(p => p.trim());
-      if (parts.length >= 4) {
-        const [word, type, def, example] = parts;
-        // Clean example (remove possible quotes from AI)
-        const cleanExample = example.replace(/^["'“”'"]|["'“”'"]$/g, '').trim();
-        // Highlight word in example (case insensitive)
-        const highlightedEx = cleanExample.replace(
-          new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
-          '<span class="text-primary font-medium">$1</span>'
-        );
-        return `
-          <div class="mb-8 last:mb-0">
-            <div class="flex items-baseline gap-3 mb-1.5">
-              <span class="text-xl font-bold text-slate-100 tracking-tight">${word}</span>
-              <span class="text-[13px] text-slate-500 font-medium">${type} ${def}</span>
-            </div>
-            <p class="text-[15px] text-slate-400 leading-relaxed font-normal">
-              "${highlightedEx}"
-            </p>
-          </div>`;
-      }
-      return '';
-    }).join('');
+      if (parts.length < 4) return '';
+      const [word, pos, def, example] = parts;
+      const cleanExample = example.replace(/^["""''']+|["""''']+$/g, '').trim();
+      // Highlight the vocab word (and simple inflections) in the example
+      const highlighted = cleanExample.replace(
+        new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w*)`, 'gi'),
+        '<span class="highlight">$1</span>'
+      );
+      return `
+      <div class="vocab-item">
+        <div class="vocab-header">
+          <span class="vocab-word">${word}</span>
+          <span class="vocab-pos">${pos}. ${def}</span>
+        </div>
+        <p class="vocab-sentence">"${highlighted}"</p>
+      </div>`;
+    })
+    .filter(Boolean)
+    .join('');
+
+  return items || `<p class="vocab-empty">正在从今日资讯中归纳难点词汇...</p>`;
+}
+
+export function generatePreviewShell(news: NewsItem[], aiSummary: string): string {
+  const [hero, ...rest] = news;
+  const source = news[0]?.source || 'News';
+  const dateStr = new Date().toLocaleDateString('zh-CN', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
 
   return `<!DOCTYPE html>
-<html class="dark" lang="zh-CN">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>聚合预览 · ${news[0]?.source || 'News'}</title>
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
-  <script>tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ primary:'#137fec' }, fontFamily:{ sans:['Inter','sans-serif'] } } } }</script>
+  <title>聚合资讯 · 深度阅读 · ${source}</title>
+  <meta name="description" content="${source} 最新资讯 · AI 词汇精选 · 深度阅读"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
-    .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
-    .scrollbar-none::-webkit-scrollbar { display: none; }
+    :root {
+      --bg:             #0b0f15;
+      --surface:        #111720;
+      --border:         rgba(255,255,255,0.06);
+      --text-primary:   #f0f2f5;
+      --text-secondary: #7a8494;
+      --text-muted:     #3d4553;
+      --accent:         #4e8ef7;
+      --accent-dim:     rgba(78,142,247,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Section Label ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .section-label span {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── Hero Article ── */
+    .hero-article { margin-bottom: 48px; }
+
+    .hero-image {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+    }
+    .hero-image img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform 0.6s ease;
+    }
+    .hero-article:hover .hero-image img { transform: scale(1.03); }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(78,142,247,0.2);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(20px, 4vw, 26px);
+      line-height: 1.35;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .hero-body {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--text-secondary);
+    }
+
+    .article-meta {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .article-meta time {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .article-meta a {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      transition: color 0.2s;
+    }
+    .article-meta a:hover { color: var(--text-secondary); }
+
+    /* ── Secondary Articles ── */
+    .secondary-list { display: flex; flex-direction: column; }
+
+    .secondary-article {
+      padding: 28px 0;
+      border-top: 1px solid var(--border);
+      transition: opacity 0.2s;
+    }
+    .secondary-article:hover { opacity: 0.9; }
+
+    .secondary-image {
+      width: 100%;
+      aspect-ratio: 3 / 1;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .secondary-image img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform 0.5s ease;
+    }
+    .secondary-article:hover .secondary-image img { transform: scale(1.04); }
+
+    .secondary-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .secondary-source {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .secondary-header .dot {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      opacity: 0.4;
+    }
+    .secondary-header time {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .secondary-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(15px, 3vw, 18px);
+      line-height: 1.4;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      transition: color 0.2s;
+    }
+    .secondary-article:hover .secondary-title { color: var(--accent); }
+
+    .secondary-body {
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+
+    .secondary-link {
+      display: block;
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .secondary-link:hover { color: var(--text-secondary); }
+
+    /* ── Vocabulary Section ── */
+    .vocab-section {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .vocab-item {
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .vocab-item:first-of-type { border-top: 1px solid var(--border); }
+
+    .vocab-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .vocab-word {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .vocab-pos {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .vocab-sentence {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .vocab-sentence .highlight {
+      color: var(--accent);
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .vocab-empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 12px 0;
+    }
+
+    /* ── Footer ── */
+    .page-footer {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.9;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
-<body class="dark bg-[#0a0f14] text-slate-100 min-h-screen pb-28">
+<body>
+<main>
 
-<!-- Brand Header -->
-<div class="bg-primary/10 text-primary text-[10px] font-black text-center py-1.5 uppercase tracking-[0.3em] border-b border-primary/20">
-  ${news[0]?.source || 'Intelligence'} · Cross-Domain Studio
-</div>
+  <!-- Latest Reports -->
+  <section>
+    <div class="section-label"><span>Latest Reports</span></div>
 
-<header class="sticky top-0 z-50 bg-[#0a0f14]/80 backdrop-blur-xl border-b border-slate-800/30">
-  <div class="flex items-center justify-between px-6 py-4 max-w-2xl mx-auto">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-        <span class="material-symbols-outlined text-2xl">auto_stories</span>
-      </div>
-      <div>
-        <p class="text-base font-black text-slate-100 tracking-tight">Deep Reading</p>
-        <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">${dateStr}</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 shadow-inner">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-      <span class="text-[11px] font-black text-slate-300 tracking-tighter">${timeStr}</span>
-    </div>
-  </div>
-</header>
+    ${hero ? heroCard(hero) : ''}
 
-<main class="max-w-2xl mx-auto px-6 py-8">
-
-  <!-- Main Feed Section -->
-  <section class="mb-16">
-    <div class="flex items-center gap-4 mb-8">
-      <h2 class="text-xs font-black tracking-[0.2em] text-slate-500 uppercase">Latest Reports</h2>
-      <div class="h-px flex-1 bg-gradient-to-r from-slate-800 to-transparent"></div>
-    </div>
-    ${newsCards(news)}
-  </section>
-
-  <!-- AI Vocabulary Section -->
-  <section id="ai-study" class="relative py-12 border-t border-slate-800/50">
-    <div class="flex items-center justify-between mb-10">
-      <h3 class="text-sm font-bold text-slate-500 tracking-wide">今日阅读难词汇总</h3>
-      <div class="w-8 h-px bg-slate-800"></div>
-    </div>
-    
-    <div class="space-y-2">
-      ${vocabItems || `<p class="text-sm text-slate-500 italic py-4">正在从今日资讯中归纳难点词汇...</p>`}
+    <div class="secondary-list">
+      ${rest.map(secondaryCard).join('')}
     </div>
   </section>
 
-  <!-- RAW HTML Section -->
-  <section class="mt-20 pb-12">
-    <details class="group">
-      <summary class="flex items-center justify-between cursor-pointer py-4 border-t border-slate-800/40 text-[10px] font-black text-slate-600 hover:text-slate-400 transition-colors list-none uppercase tracking-widest">
-        <span class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">code</span>
-          Raw Source Template
-        </span>
-        <span class="material-symbols-outlined text-base group-open:rotate-180 transition-transform">keyboard_arrow_down</span>
-      </summary>
-      <div class="mt-6 rounded-2xl overflow-hidden border border-white/5 shadow-2xl bg-white">
-        ${articleHtml}
-      </div>
-    </details>
+  <!-- Vocabulary Section -->
+  <section class="vocab-section" id="ai-study">
+    <div class="section-label"><span>今日阅读难词汇总</span></div>
+    <div class="vocab-list">
+      ${vocabSection(aiSummary)}
+    </div>
   </section>
+
+  <footer class="page-footer">
+    数据源: ${source} · 由 AI 提供语言支持<br>
+    © ${new Date().getFullYear()} 大侠的读书笔记 · ${dateStr}
+  </footer>
+
 </main>
-
-<!-- Navigation -->
-<nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0f14]/80 backdrop-blur-2xl border-t border-white/5">
-  <div class="flex justify-around items-center px-6 py-6 max-w-2xl mx-auto">
-    <a href="#" class="flex flex-col items-center gap-1.5 text-primary">
-      <span class="material-symbols-outlined text-2xl font-variation-fill">explore</span>
-      <span class="text-[10px] font-black uppercase tracking-tight">Discover</span>
-    </a>
-    <a href="#ai-study" class="flex flex-col items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors">
-      <span class="material-symbols-outlined text-2xl">book</span>
-      <span class="text-[10px] font-black uppercase tracking-tight">Learn</span>
-    </a>
-    <a href="#" class="flex flex-col items-center gap-1.5 text-slate-500 hover:text-slate-300 transition-colors">
-      <span class="material-symbols-outlined text-2xl">person</span>
-      <span class="text-[10px] font-black uppercase tracking-tight">Account</span>
-    </a>
-  </div>
-  <div class="h-6"></div>
-</nav>
-
 </body>
 </html>`;
 }

@@ -33,17 +33,12 @@ export default {
       // 1. Fetch news for the specific domain
       const news = await newsProvider.fetchNews();
 
-      // 2. Generate AI abstracts (clean text for each article)
-      const abstracts = await aiService.generateAbstracts(news);
-      news.forEach((item, i) => { item.aiAbstract = abstracts[i]; });
-
-      // 3. Process with AI for vocabulary
+      // 2. Process with AI for vocabulary (NASA descriptions are cleaned at parse level)
       const aiSummary = await aiService.processWithAI(news);
 
       // 3. Action: Browser Preview (HTML)
       if (action === 'preview-html') {
-        const articleHtml = generateArticleHtml(aiSummary, news);
-        const html = generatePreviewShell(articleHtml, news, aiSummary);
+        const html = generatePreviewShell(news, aiSummary);
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       }
 
