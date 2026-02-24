@@ -2,3 +2,34 @@ node_modules/
 dist/
 .dev.vars
 .wrangler/
+
+# Cloudflare/Wrangler generated files
+.cloudflare/
+
+# ==============================
+# Temporary test scripts (local only, contain API keys)
+# ==============================
+test_gemini.js
+test_correct_api.js
+test_gemini.ps1
+test_rss_sources.ps1
+
+# ==============================
+# Test output & scratch files (generated during development)
+# ==============================
+ai_test_result*.txt
+v25_test_final.txt
+gemini_error.txt
+gemini_raw*.json
+gemini_text.txt
+gemini_raw.json
+node_test_result.json
+rss_eval_results.json
+
+# Raw RSS/XML data snapshots
+*.xml
+
+# Generated HTML previews
+nasa_preview_out*.html
+nasa_analysis.txt
+nasa_teaser_result.txt
