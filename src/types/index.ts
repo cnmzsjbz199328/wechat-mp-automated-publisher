@@ -13,6 +13,7 @@ export interface NewsItem {
   imageUrl?: string;
   description?: string;
   aiAbstract?: string;
+  aiTranslation?: { title: string; content: string };
 }
 
 export interface WeChatTokenResponse {

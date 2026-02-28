@@ -44,6 +44,7 @@ Tailwinds | n. | 有利因素 | Global subsidy renewals provide strong tailwinds
       const response = await this.env.AI.run('@cf/meta/llama-3-8b-instruct', {
         messages: [{ role: 'user', content: prompt }]
       });
+
       const raw: string = ((response as any).response || '').trim();
       if (!raw) return fallback;
 
@@ -98,4 +99,3 @@ Write the abstract now:`;
     return Promise.all(calls);
   }
 }
-

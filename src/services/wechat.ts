@@ -31,13 +31,25 @@ export class WeChatService {
   }
 
   async uploadThumb(token: string, customUrl?: string): Promise<string> {
-    const urlToFetch = customUrl || API_URLS.DEFAULT_THUMB_IMAGE;
-    const imgRes = await fetch(urlToFetch, {
+    let urlToFetch = customUrl || API_URLS.DEFAULT_THUMB_IMAGE;
+    let imgRes = await fetch(urlToFetch, {
       redirect: 'follow',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
+
+    if (!imgRes.ok && customUrl) {
+      console.warn(`[WARN] Custom thumb failed (${imgRes.status} ${imgRes.statusText}), falling back to default: ${customUrl}`);
+      urlToFetch = API_URLS.DEFAULT_THUMB_IMAGE;
+      imgRes = await fetch(urlToFetch, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+    }
+
     if (!imgRes.ok) {
       throw new Error(`Failed to fetch thumb image from ${urlToFetch}: ${imgRes.status} ${imgRes.statusText}`);
     }

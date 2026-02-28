@@ -36,22 +36,38 @@ function metaLine(item: NewsItem): string {
 
 /* ── Hero article (first item, full-height image) ── */
 function heroCard(item: NewsItem): string {
+  const trans = item.aiTranslation;
   return `
 ${item.imageUrl ? `<p style="margin:0 0 16px;"><img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:6px;"/></p>` : ''}
 ${metaLine(item)}
+${trans ? `
+<p style="font-size:20px;font-weight:800;color:#1a1a1a;margin:0 0 12px;text-align:left;word-break:break-word;">${trans.title}</p>
+<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 16px;text-align:left;word-break:break-word;background:${C.bgCode};padding:12px;border-left:4px solid ${C.accent};border-radius:0 4px 4px 0;">${trans.content}</p>
+<p style="font-size:16px;font-weight:700;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;margin:0 0 8px;text-align:left;word-break:break-word;">${item.title}</p>
+<p style="font-size:14px;color:${C.muted};line-height:1.7;margin:0 0 10px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+` : `
 <p style="font-size:20px;font-weight:800;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 12px;text-align:left;word-break:break-word;">${item.title}</p>
 <p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 10px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+`}
 ${item.link ? `<p style="margin:0 0 4px;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
 }
 
 /* ── Secondary card (cropped 3:1 banner image) ── */
 function secondaryCard(item: NewsItem): string {
+  const trans = item.aiTranslation;
   return `
 <p style="margin:22px 0 0;border-top:1px solid ${C.border};padding-top:22px;"></p>
 ${item.imageUrl ? `<p style="margin:0 0 14px;overflow:hidden;border-radius:6px;"><img src="${item.imageUrl}" alt="" style="width:100%;display:block;aspect-ratio:3/1;object-fit:cover;"/></p>` : ''}
 ${metaLine(item)}
+${trans ? `
+<p style="font-size:17px;font-weight:700;color:#1a1a1a;margin:0 0 10px;text-align:left;word-break:break-word;">${trans.title}</p>
+<p style="font-size:14px;line-height:1.8;color:${C.text};margin:0 0 14px;text-align:left;word-break:break-word;background:${C.bgCode};padding:10px;border-left:3px solid ${C.accent};border-radius:0 4px 4px 0;">${trans.content}</p>
+<p style="font-size:15px;font-weight:600;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;margin:0 0 6px;text-align:left;word-break:break-word;">${item.title}</p>
+<p style="font-size:13px;color:${C.muted};line-height:1.6;margin:0 0 8px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+` : `
 <p style="font-size:17px;font-weight:700;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 10px;text-align:left;word-break:break-word;">${item.title}</p>
 <p style="font-size:14px;line-height:1.8;color:${C.text};margin:0 0 8px;text-align:left;word-break:break-word;">${item.aiAbstract || item.description || ''}</p>
+`}
 ${item.link ? `<p style="margin:0;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
 }
 

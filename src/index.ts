@@ -2,6 +2,7 @@ import { Env } from './types';
 import { WeChatService } from './services/wechat';
 import { NewsFactory } from './services/news';
 import { AIService } from './services/ai';
+import { TranslationService } from './services/translation';
 import { generateArticleHtml } from './templates/article';
 import { generatePreviewShell } from './templates/preview';
 import { API_URLS } from './config/constants';
@@ -28,13 +29,17 @@ export default {
 
     const newsProvider = NewsFactory.getProvider(domain, env);
     const aiService = new AIService(env);
+    const translationService = new TranslationService();
     const wechatService = new WeChatService(env);
 
     try {
       // 1. Fetch news for the specific domain
       const news = await newsProvider.fetchNews();
 
-      // 2. Process with AI for vocabulary + digest (single call)
+      // 2. Translate news items in batch (Mutates news items)
+      await translationService.translateBatch(news);
+
+      // 3. Process with AI for vocabulary + digest (single call)
       const aiOutput = await aiService.processWithAI(news);
 
       // 3. Action: Browser Preview (HTML)
