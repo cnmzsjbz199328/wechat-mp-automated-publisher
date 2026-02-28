@@ -22,7 +22,15 @@ export const API_URLS = {
   WECHAT_TOKEN: 'https://api.weixin.qq.com/cgi-bin/token',
   WECHAT_MEDIA_UPLOAD: 'https://api.weixin.qq.com/cgi-bin/material/add_material',
   WECHAT_DRAFT_ADD: 'https://api.weixin.qq.com/cgi-bin/draft/add',
-  DEFAULT_THUMB_IMAGE: 'https://picsum.photos/id/1070/900/500.jpg'
+  DEFAULT_THUMB_IMAGE: 'https://images.unsplash.com/photo-1524850011238-e3d235c7d4c9?w=900&h=500&fit=crop&fm=jpg', // Sydney view
+  DEFAULT_IMMIGRATION_THUMBS: [
+    'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=900&h=500&fit=crop&fm=jpg', // Sydney Opera House Aerial
+    'https://images.unsplash.com/photo-1493362841630-d11ea609c1b4?w=900&h=500&fit=crop&fm=jpg', // Australian Outback/Nature
+    'https://images.unsplash.com/photo-1510526084045-814cb9bfaf4b?w=900&h=500&fit=crop&fm=jpg', // Melbourne Skyline
+    'https://images.unsplash.com/photo-1528072164453-61a7a1fb5f0c?w=900&h=500&fit=crop&fm=jpg', // Australian Flag overlay
+    'https://images.unsplash.com/photo-1624138784614-87fd1b65d66c?w=900&h=500&fit=crop&fm=jpg', // Australian Passport mockup vibe
+    'https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?w=900&h=500&fit=crop&fm=jpg'  // Clean office/document signing
+  ]
 };
 
 export const RSS_SOURCES: Record<string, string> = {

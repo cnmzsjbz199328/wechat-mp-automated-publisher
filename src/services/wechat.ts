@@ -30,13 +30,26 @@ export class WeChatService {
     return data.access_token;
   }
 
-  async uploadThumb(token: string): Promise<string> {
-    const imgRes = await fetch(API_URLS.DEFAULT_THUMB_IMAGE, { redirect: 'follow' });
+  async uploadThumb(token: string, customUrl?: string): Promise<string> {
+    const urlToFetch = customUrl || API_URLS.DEFAULT_THUMB_IMAGE;
+    const imgRes = await fetch(urlToFetch, {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    if (!imgRes.ok) {
+      throw new Error(`Failed to fetch thumb image from ${urlToFetch}: ${imgRes.status} ${imgRes.statusText}`);
+    }
+
+    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+    const ext = contentType.includes('png') ? 'png' : contentType.includes('gif') ? 'gif' : 'jpg';
+
     const arrayBuffer = await imgRes.arrayBuffer();
-    const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+    const blob = new Blob([arrayBuffer], { type: contentType });
 
     const formData = new FormData();
-    formData.append('media', blob, 'thumb.jpg');
+    formData.append('media', blob, `thumb.${ext}`);
 
     const url = `${API_URLS.WECHAT_MEDIA_UPLOAD}?access_token=${token}&type=image`;
     const uploadRes = await fetch(url, {
@@ -60,7 +73,12 @@ export class WeChatService {
    */
   async uploadImage(token: string, imageUrl: string): Promise<string | null> {
     try {
-      const imgRes = await fetch(imageUrl, { redirect: 'follow' });
+      const imgRes = await fetch(imageUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
       if (!imgRes.ok) return null;
 
       const contentType = imgRes.headers.get('content-type') || 'image/jpeg';

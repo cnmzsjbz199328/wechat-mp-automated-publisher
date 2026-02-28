@@ -4,6 +4,7 @@ import { NewsFactory } from './services/news';
 import { AIService } from './services/ai';
 import { generateArticleHtml } from './templates/article';
 import { generatePreviewShell } from './templates/preview';
+import { API_URLS } from './config/constants';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -60,9 +61,15 @@ export default {
       if (action === 'live') {
         const token = await wechatService.getAccessToken();
 
+        let coverUrl: string | undefined;
+        if (domain === 'IMMIGRATION') {
+          const thumbs = API_URLS.DEFAULT_IMMIGRATION_THUMBS;
+          coverUrl = thumbs[Math.floor(Math.random() * thumbs.length)];
+        }
+
         // Upload cover thumb + all article images concurrently
         const [thumbMediaId, ...uploadedUrls] = await Promise.all([
-          wechatService.uploadThumb(token),
+          wechatService.uploadThumb(token, coverUrl),
           ...news.map(n =>
             n.imageUrl ? wechatService.uploadImage(token, n.imageUrl) : Promise.resolve(null)
           )

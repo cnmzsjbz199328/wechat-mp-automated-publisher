@@ -99,8 +99,7 @@ Ensure the response is valid JSON format. Do not use markdown blocks.`;
             pubDate: item.pubDate,
             link: item.link,
             source: item.source,
-            description: item.description,
-            imageUrl: API_URLS.DEFAULT_THUMB_IMAGE
+            description: item.description
         }));
     }
 }
