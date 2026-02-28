@@ -42,7 +42,7 @@ Ensure the response is valid JSON format. Do not use markdown blocks.`;
         const USER_QUERY = "Search for Australian immigration policy and visa changes in the last 7 days and output structured JSON.";
 
         const payload = {
-            model: "grok-4-1-fast-reasoning",
+            model: "grok-4-1-fast-non-reasoning",
             input: [
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: USER_QUERY }

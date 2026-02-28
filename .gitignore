@@ -13,6 +13,7 @@ test_gemini.js
 test_correct_api.js
 test_gemini.ps1
 test_rss_sources.ps1
+test_grok_api.js
 
 # ==============================
 # Test output & scratch files (generated during development)
@@ -25,6 +26,12 @@ gemini_text.txt
 gemini_raw.json
 node_test_result.json
 rss_eval_results.json
+grok_result.json
+grok_raw_response.json
+gemini_result.json
+评估报告.md
+task.md
+walkthrough.md
 
 # Raw RSS/XML data snapshots
 *.xml
