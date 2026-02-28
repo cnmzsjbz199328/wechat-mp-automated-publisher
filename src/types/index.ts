@@ -1,6 +1,7 @@
 export interface Env {
   APPID: string;
   APPSECRET: string;
+  XAI_API_KEY: string;
   AI: any; // Cloudflare AI binding type
 }
 

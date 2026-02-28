@@ -21,11 +21,11 @@ export default {
       else if (pathname === '/preview-html') { domain = 'FINANCE'; action = 'preview-html'; }
       else if (pathname === '/preview') { domain = 'FINANCE'; action = 'preview'; }
       else {
-        return Response.json({ status: 'ready', domains: ['FINANCE', 'NASA', 'ARS'] });
+        return Response.json({ status: 'ready', domains: ['FINANCE', 'NASA', 'ARS', 'IMMIGRATION'] });
       }
     }
 
-    const newsProvider = NewsFactory.getProvider(domain);
+    const newsProvider = NewsFactory.getProvider(domain, env);
     const aiService = new AIService(env);
     const wechatService = new WeChatService(env);
 
@@ -77,7 +77,8 @@ export default {
         const titles: Record<string, string> = {
           FINANCE: '美国金融动态',
           NASA: '【星际探索】NASA 航天前沿速递',
-          ARS: '【科技深思考】Ars Technica 技术洞察'
+          ARS: '【科技深思考】Ars Technica 技术洞察',
+          IMMIGRATION: '【澳洲快讯】官方移民动态追踪'
         };
 
         const htmlContent = generateArticleHtml(aiOutput.vocab, news);
