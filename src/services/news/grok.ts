@@ -13,33 +13,49 @@ export class GrokNewsProvider implements NewsProvider {
     }
 
     async fetchNews(): Promise<NewsItem[]> {
-        const SYSTEM_PROMPT = `You are a professional Australian immigration news researcher.
+        // Define specific sub-niches to diversify immigration news and avoid repetition
+        const subNiches = [
+            "Skilled migration (subclass 189/190/491) state nomination and points test updates",
+            "Employer sponsored visas (subclass 482/186) and occupation list/salary threshold changes",
+            "Student (500) and Graduate (485) visa policy and migration strategy updates",
+            "Partner, child, and parent migration program developments",
+            "Australian Migration Strategy, annual planning levels, and cap updates",
+            "Regional migration initiatives, DAMA agreements, and rural visa programs",
+            "Business innovation and investment (BIIP) visa reforms",
+            "Visa processing times, statistics, and citizenship residence requirements",
+            "Skills assessment and occupational licensing for international workers",
+            "Working Holiday Maker (417/462) and short-term visa policy changes"
+        ];
 
-Your task is to perform a targeted search on Australian government websites and authoritative news outlets for immigration policies, visa changes, or migration statistics from the LAST 7 DAYS.
+        // Randomly pick one niche for this fetch
+        const selectedNiche = subNiches[Math.floor(Math.random() * subNiches.length)];
 
-Use the web_search tool to find exactly 5 news articles.
-Focus on official and highly authoritative sources like:
-- immi.homeaffairs.gov.au
-- homeaffairs.gov.au
-- abc.net.au
-- sbs.com.au
-- theguardian.com/australia-news
+        const SYSTEM_PROMPT = `You are a professional Australian immigration policy researcher specializing in ${selectedNiche}.
+
+Your task is to perform a targeted search on Australian government websites (primarily homeaffairs.gov.au) and authoritative migration sources for CURRENT active policy information, official guidelines, or significant recent changes regarding [${selectedNiche}].
+
+Use the web_search tool to find exactly 5 key policy points or updates.
+Focus on:
+- Core eligibility requirements
+- Current visa conditions and criteria
+- Official guidelines and recent policy trends
+- Latest invitation data or quota information if applicable
 
 Output the result strictly as a JSON object with the following structure:
 {
   "items": [
     {
-      "title": "Article headline",
-      "source": "Media outlet or government department name",
-      "link": "Direct URL to the article",
-      "pubDate": "RFC 2822 date string e.g. Thu, 20 Feb 2026 21:27:00 +0000",
-      "description": "80-100 word English summary."
+      "title": "Policy point or update headline",
+      "source": "Government department or official source name",
+      "link": "Direct URL to the official policy page or news article",
+      "pubDate": "Current date or date of last policy update (RFC 2822 string)",
+      "description": "80-100 word English explanation of the policy or change."
     }
   ]
 }
 Ensure the response is valid JSON format. Do not use markdown blocks.`;
 
-        const USER_QUERY = "Search for Australian immigration policy and visa changes in the last 7 days and output structured JSON.";
+        const USER_QUERY = `Search for current active policies, official guidelines, and key requirements specifically regarding [${selectedNiche}] in Australia and output as structured JSON.`;
 
         const payload = {
             model: "grok-4-1-fast-non-reasoning",
