@@ -7,6 +7,70 @@ import { generateArticleHtml } from './templates/article';
 import { generatePreviewShell } from './templates/preview';
 import { API_URLS } from './config/constants';
 
+async function handleDomainLive(domain: string, env: Env): Promise<any> {
+  const newsProvider = NewsFactory.getProvider(domain, env);
+  const aiService = new AIService(env);
+  const translationService = new TranslationService();
+  const wechatService = new WeChatService(env);
+
+  // 1. Fetch news for the specific domain
+  const news = await newsProvider.fetchNews();
+
+  // 2. Translate news items in batch
+  await translationService.translateBatch(news);
+
+  // 3. Process with AI for vocabulary
+  const aiOutput = await aiService.processWithAI(news);
+
+  // 4. Construct Digest from Translated Titles
+  const constructedDigest = news
+    .map(n => n.aiTranslation?.title || n.title)
+    .filter(Boolean)
+    .join(' | ');
+
+  // 5. Live Publish to WeChat
+  const token = await wechatService.getAccessToken();
+
+  let coverUrl: string | undefined;
+  if (domain === 'IMMIGRATION') {
+    const thumbs = API_URLS.DEFAULT_IMMIGRATION_THUMBS;
+    coverUrl = thumbs[Math.floor(Math.random() * thumbs.length)];
+  }
+
+  // Upload cover thumb + all article images concurrently
+  const [thumbMediaId, ...uploadedUrls] = await Promise.all([
+    wechatService.uploadThumb(token, coverUrl),
+    ...news.map(n =>
+      n.imageUrl ? wechatService.uploadImage(token, n.imageUrl) : Promise.resolve(null)
+    )
+  ]);
+
+  // Replace original image URLs with WeChat CDN URLs
+  news.forEach((n, i) => {
+    if (uploadedUrls[i]) n.imageUrl = uploadedUrls[i]!;
+  });
+
+  // Domain-specific titles
+  const titles: Record<string, string> = {
+    FINANCE: '美国金融动态',
+    NASA: '【星际探索】NASA 航天前沿速递',
+    ARS: '【科技深思考】Ars Technica 技术洞察',
+    IMMIGRATION: '【澳洲快讯】官方移民动态追踪'
+  };
+
+  const htmlContent = generateArticleHtml(aiOutput.vocab, news);
+  const draftRes = await wechatService.createDraft(
+    token,
+    titles[domain] || `【${domain}】今日动态预览`,
+    '大侠',
+    htmlContent,
+    thumbMediaId,
+    constructedDigest
+  );
+
+  return draftRes;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
@@ -39,12 +103,18 @@ export default {
       // 2. Translate news items in batch (Mutates news items)
       await translationService.translateBatch(news);
 
-      // 3. Process with AI for vocabulary + digest (single call)
+      // 3. Process with AI for vocabulary
       const aiOutput = await aiService.processWithAI(news);
 
-      // 3. Action: Browser Preview (HTML)
+      // 4. Construct Digest from Translated Titles
+      const constructedDigest = news
+        .map(n => n.aiTranslation?.title || n.title)
+        .filter(Boolean)
+        .join(' | ');
+
+      // 5. Action: Browser Preview (HTML)
       if (action === 'preview-html') {
-        const html = generatePreviewShell(news, aiOutput.vocab, aiOutput.digest);
+        const html = generatePreviewShell(news, aiOutput.vocab, constructedDigest);
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       }
 
@@ -55,7 +125,7 @@ export default {
           domain,
           newsCount: news.length,
           news,
-          digest: aiOutput.digest,
+          digest: constructedDigest,
           vocab: aiOutput.vocab,
           htmlLength: htmlContent.length,
           htmlPreview: htmlContent.substring(0, 300) + '...',
@@ -64,53 +134,49 @@ export default {
 
       // 5. Action: Live Publish to WeChat
       if (action === 'live') {
-        const token = await wechatService.getAccessToken();
-
-        let coverUrl: string | undefined;
-        if (domain === 'IMMIGRATION') {
-          const thumbs = API_URLS.DEFAULT_IMMIGRATION_THUMBS;
-          coverUrl = thumbs[Math.floor(Math.random() * thumbs.length)];
-        }
-
-        // Upload cover thumb + all article images concurrently
-        const [thumbMediaId, ...uploadedUrls] = await Promise.all([
-          wechatService.uploadThumb(token, coverUrl),
-          ...news.map(n =>
-            n.imageUrl ? wechatService.uploadImage(token, n.imageUrl) : Promise.resolve(null)
-          )
-        ]);
-
-        // Replace original image URLs with WeChat CDN URLs
-        news.forEach((n, i) => {
-          if (uploadedUrls[i]) n.imageUrl = uploadedUrls[i]!;
-        });
-
-        // Domain-specific titles
-        const titles: Record<string, string> = {
-          FINANCE: '美国金融动态',
-          NASA: '【星际探索】NASA 航天前沿速递',
-          ARS: '【科技深思考】Ars Technica 技术洞察',
-          IMMIGRATION: '【澳洲快讯】官方移民动态追踪'
-        };
-
-        const htmlContent = generateArticleHtml(aiOutput.vocab, news);
-        const draftRes = await wechatService.createDraft(
-          token,
-          titles[domain] || `【${domain}】今日动态预览`,
-          '大侠',
-          htmlContent,
-          thumbMediaId,
-          aiOutput.digest
-        );
-
+        const draftRes = await handleDomainLive(domain, env);
         return Response.json({ domain, result: draftRes });
       }
 
       return Response.json({ error: 'Invalid action' }, { status: 400 });
 
     } catch (error: any) {
-      console.error(`Error processing ${domain} ${action}:`, error);
+      console.error(`Error processing ${domain} ${action} via fetch:`, error);
       return Response.json({ domain, error: error.message }, { status: 500 });
+    }
+  },
+
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    try {
+      console.log(`Cron triggered: ${event.cron}`);
+      let domainToRun = '';
+
+      switch (event.cron) {
+        case '30 21 * * *':
+          domainToRun = 'FINANCE';
+          break;
+        case '45 21 * * *':
+          domainToRun = 'NASA';
+          break;
+        case '0 22 * * *':
+          domainToRun = 'ARS';
+          break;
+        case '15 22 * * *':
+          domainToRun = 'IMMIGRATION';
+          break;
+        default:
+          console.log(`Unmatched cron schedule: ${event.cron}`);
+          return;
+      }
+
+      if (domainToRun) {
+        console.log(`Dispatching live publish job for domain: ${domainToRun}`);
+        ctx.waitUntil(handleDomainLive(domainToRun, env).catch(err => {
+          console.error(`Scheduled task failed for ${domainToRun}:`, err);
+        }));
+      }
+    } catch (err) {
+      console.error(`Error in scheduled handler:`, err);
     }
   }
 };
