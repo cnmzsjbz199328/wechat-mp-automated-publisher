@@ -48,3 +48,5 @@ walkthrough.md
 nasa_preview_out*.html
 nasa_analysis.txt
 nasa_teaser_result.txt
+
+wrangler.toml
