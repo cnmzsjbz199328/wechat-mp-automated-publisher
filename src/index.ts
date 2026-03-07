@@ -55,7 +55,10 @@ async function handleDomainLive(domain: string, env: Env): Promise<any> {
     FINANCE: '美国金融动态',
     NASA: '【星际探索】NASA 航天前沿速递',
     ARS: '【科技深思考】Ars Technica 技术洞察',
-    IMMIGRATION: '【澳洲快讯】官方移民动态追踪'
+    IMMIGRATION: '【澳洲快讯】官方移民动态追踪',
+    SCIENCEDAILY: '【科学前沿】ScienceDaily 每日科学速递',
+    MIT: '【MIT深读】今日研究前沿',
+    APA: '【哲思漫谈】今日哲学探索',
   };
 
   const htmlContent = generateArticleHtml(aiOutput.vocab, news);
@@ -149,34 +152,45 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     try {
       console.log(`Cron triggered: ${event.cron}`);
-      let domainToRun = '';
 
       switch (event.cron) {
         case '30 21 * * *':
-          domainToRun = 'FINANCE';
+          ctx.waitUntil(handleDomainLive('FINANCE', env).catch(err =>
+            console.error('Scheduled FINANCE failed:', err)));
           break;
         case '45 21 * * *':
-          domainToRun = 'NASA';
+          ctx.waitUntil(handleDomainLive('NASA', env).catch(err =>
+            console.error('Scheduled NASA failed:', err)));
           break;
         case '0 22 * * *':
-          domainToRun = 'ARS';
+          ctx.waitUntil(handleDomainLive('ARS', env).catch(err =>
+            console.error('Scheduled ARS failed:', err)));
           break;
         case '15 22 * * *':
-          domainToRun = 'IMMIGRATION';
+          ctx.waitUntil(handleDomainLive('IMMIGRATION', env).catch(err =>
+            console.error('Scheduled IMMIGRATION failed:', err)));
           break;
+        case '30 22 * * *': {
+          // Batch slot: run SCIENCEDAILY → MIT → APA sequentially
+          const newDomains = ['SCIENCEDAILY', 'MIT', 'APA'];
+          ctx.waitUntil(
+            newDomains.reduce<Promise<void>>((chain, domain) =>
+              chain.then(() =>
+                handleDomainLive(domain, env).catch(err =>
+                  console.error(`Batch scheduled task failed for ${domain}:`, err)
+                )
+              ),
+              Promise.resolve()
+            )
+          );
+          break;
+        }
         default:
           console.log(`Unmatched cron schedule: ${event.cron}`);
-          return;
-      }
-
-      if (domainToRun) {
-        console.log(`Dispatching live publish job for domain: ${domainToRun}`);
-        ctx.waitUntil(handleDomainLive(domainToRun, env).catch(err => {
-          console.error(`Scheduled task failed for ${domainToRun}:`, err);
-        }));
       }
     } catch (err) {
       console.error(`Error in scheduled handler:`, err);
     }
   }
 };
+

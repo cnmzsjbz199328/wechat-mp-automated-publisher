@@ -14,6 +14,14 @@ test_correct_api.js
 test_gemini.ps1
 test_rss_sources.ps1
 test_grok_api.js
+test_nvidia_nim.js
+test_nvidia_benchmark.js
+test_nvidia_benchmark_en.js
+test_nvidia_debug_llama_en.js
+test_nvidia_en_detailed.js
+nvidia_model_evaluation.md
+nvidia_model_evaluation_en.md
+nvidia_en_detailed_evaluation.md
 
 # ==============================
 # Test output & scratch files (generated during development)

@@ -36,6 +36,15 @@ export const API_URLS = {
 export const RSS_SOURCES: Record<string, string> = {
   FINANCE: 'http://feeds.marketwatch.com/marketwatch/topstories',
   NASA: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
-  ARS: 'https://feeds.arstechnica.com/arstechnica/index'
+  ARS: 'https://feeds.arstechnica.com/arstechnica/index',
+  SCIENCEDAILY: 'https://www.sciencedaily.com/rss/all.xml',
+  MIT: 'https://news.mit.edu/rss/research',
+  APA: 'https://blog.apaonline.org/feed/',
+};
+
+// Unified AI backend endpoints
+export const UNIFIED_AI = {
+  MEDIUM: 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/medium',
+  LARGE_NVIDIA: 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/nvidia',
 };
 

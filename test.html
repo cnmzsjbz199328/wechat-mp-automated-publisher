@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Episteme — RSS 样本审查</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a08;
+            --bg2: #111110;
+            --bg3: #1a1a17;
+            --border: #2a2a25;
+            --accent: #c8a96e;
+            --accent2: #7eb8a4;
+            --text: #e8e4dc;
+            --text-muted: #7a7870;
+            --text-dim: #4a4840;
+            --science: #7eb8a4;
+            --philosophy: #c8a96e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 17px;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.4;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 8, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .logo span {
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .status-text {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+            padding-top: 64px;
+        }
+
+        aside {
+            border-right: 1px solid var(--border);
+            background: var(--bg2);
+            position: sticky;
+            top: 64px;
+            height: calc(100vh - 64px);
+            overflow-y: auto;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding: 0.75rem 1.5rem 0.4rem;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-left: 2px solid transparent;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .feed-item:hover {
+            background: var(--bg3);
+            color: var(--text);
+        }
+
+        .feed-item.active {
+            border-left-color: var(--accent);
+            background: rgba(200, 169, 110, 0.05);
+            color: var(--text);
+        }
+
+        .feed-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .feed-dot.science {
+            background: var(--science);
+        }
+
+        .feed-dot.philosophy {
+            background: var(--philosophy);
+        }
+
+        .feed-count {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+        }
+
+        main {
+            padding: 2rem 3rem;
+            max-width: 1000px;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-meta {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .article {
+            border-bottom: 1px solid var(--border);
+            padding: 2.5rem 0;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-source {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .article-date {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+        }
+
+        .article-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            line-height: 1.3;
+            color: var(--text);
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .article-title:hover {
+            color: var(--accent);
+        }
+
+        .article-content {
+            font-size: 1.05rem;
+            color: #d1cdc5;
+            line-height: 1.7;
+            max-width: 75ch;
+        }
+
+        .article-img {
+            margin-top: 1.5rem;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error {
+            color: #c87070;
+            padding: 2rem;
+            border: 1px solid #4a2a2a;
+            background: rgba(200, 100, 100, 0.05);
+            font-family: 'DM Mono', monospace;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">Episte<span>me</span> — Local Samples</div>
+        <div class="status-text" id="statusText">正在读取本地 JSON...</div>
+    </header>
+
+    <div class="layout">
+        <aside id="sidebar">
+            <div class="sidebar-label">信源选择 (FROM JSON)</div>
+            <div id="sideNav"></div>
+        </aside>
+
+        <main id="main">
+            <!-- Content -->
+        </main>
+    </div>
+
+    <script>
+        let rssData = [];
+
+        async function init() {
+            try {
+                const response = await fetch('rss_data.json');
+                if (!response.ok) throw new Error('找不到 rss_data.json，请先运行 generate_rss_json.js');
+
+                rssData = await response.json();
+                renderSidebar();
+
+                if (rssData.length > 0) {
+                    showFeed(rssData[0].id);
+                }
+
+                document.getElementById('statusText').textContent = '已加载 ' + rssData.length + ' 个样本源';
+            } catch (e) {
+                document.getElementById('main').innerHTML = `<div class="error">${e.message}</div>`;
+                document.getElementById('statusText').textContent = '加载失败';
+            }
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('sideNav');
+            nav.innerHTML = '';
+
+            rssData.forEach(feed => {
+                const el = document.createElement('div');
+                el.className = 'feed-item';
+                el.id = 'nav-' + feed.id;
+                el.onclick = () => showFeed(feed.id);
+                el.innerHTML = `
+                    <div class="feed-dot ${feed.type || 'science'}"></div>
+                    <span class="feed-name">${feed.name}</span>
+                    <span class="feed-count">${feed.items.length}</span>
+                `;
+                nav.appendChild(el);
+            });
+        }
+
+        function showFeed(id) {
+            const feed = rssData.find(f => f.id === id);
+            if (!feed) return;
+
+            document.querySelectorAll('.feed-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
+
+            const main = document.getElementById('main');
+            main.innerHTML = `
+                <div class="page-header">
+                    <div class="page-title">${feed.name}</div>
+                    <div class="page-meta">${feed.url}</div>
+                </div>
+                <div id="articles"></div>
+            `;
+
+            const list = document.getElementById('articles');
+            feed.items.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.className = 'article';
+                el.style.animationDelay = (i * 0.05) + 's';
+
+                const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString() : '未知日期';
+
+                el.innerHTML = `
+                    <div class="article-meta">
+                        <span class="article-source" style="color: var(--${feed.type || 'science'})">${feed.name}</span>
+                        <span class="article-date">${date}</span>
+                    </div>
+                    <h2 class="article-title" onclick="window.open('${item.link}', '_blank')">${item.title}</h2>
+                    <div class="article-content">${item.description || '无内容摘要'}</div>
+                    ${item.imageUrl ? `<img src="${item.imageUrl}" class="article-img">` : ''}
+                `;
+                list.appendChild(el);
+            });
+
+            window.scrollTo(0, 0);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
