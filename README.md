@@ -9,6 +9,9 @@
   - **NASA**: 抓取 NASA 官方航天科研简报。
   - **ARS**: 抓取 Ars Technica 深度技术洞察。
   - **IMMIGRATION**: 抓取澳洲官方移民动态（通过 Grok AI 实时检索）。
+  - **SCIENCEDAILY**: 抓取 ScienceDaily 每日科学前沿速递。
+  - **MIT**: 抓取 MIT Research News 深度研究前沿（通过 Nemotron 拆解长文）。
+  - **APA**: 抓取 APA Blog 哲学思考与人类智慧（通过 Nemotron 拆解长文）。
 - **AI 智能增强**：
   - **内容摘要**：自动提取长文的核心要点。
   - **中英双语**：自动翻译标题与摘要。
@@ -35,21 +38,26 @@
 ```
 src/
 ├── index.ts            # 入口：路由分发与 Cron 定时任务编排
+├── utils.ts            # 工具函数：日期随机选文等
 ├── config/
-│   └── constants.ts    # 配置：API 终点、样式常量与 RSS 源
+│   └── constants.ts    # 配置：API 端点、样式常量与 RSS 源
 ├── services/
-│   ├── ai.ts           # Cloudflare AI：词汇提取与摘要
+│   ├── ai.ts           # Cloudflare AI：词汇提取
+│   ├── nvidia.ts       # Nvidia Service：长文拆分（Nemotron）
 │   ├── translation.ts  # 翻译服务
-│   ├── wechat.ts       # 微信 API：Token 管理、媒体上传、草稿创建
-│   └── news/           # 新闻源实现（策略模式）
+│   ├── wechat.ts       # 微信 API：Token、媒体上传、草稿创建
+│   └── news/           # 新闻源实现（层 1 ：信息层）
 │       ├── finance.ts  # 金融 RSS
 │       ├── nasa.ts     # NASA RSS
 │       ├── ars.ts      # 技术 RSS
-│       └── grok.ts     # Grok AI 搜索（移民动态）
-├── templates/
-│   ├── article.ts      # 微信图文 HTML 模板
-│   └── preview.ts      # 浏览器预览 Shell
-└── types/
+│       ├── grok.ts     # Grok AI 搜索（移民动态）
+│       ├── sciencedaily.ts # 科学 RSS
+│       ├── mit.ts      # MIT 长文拆分（内嵌 Nemotron）
+│       └── apa.ts      # APA 哲学长文（内嵌 Nemotron）
+└── templates/
+    ├── article.ts      # 微信图文 HTML 模板
+    └── preview.ts      # 浏览器预览 Shell
+types/
     └── index.ts        # 全局类型定义
 ```
 
@@ -74,7 +82,7 @@ src/
 | `/{DOMAIN}-preview` | 返回处理后的 JSON 数据预览 |
 | `/{DOMAIN}-live` | **触发发布**：执行抓取、AI 处理并发布至微信草稿箱 |
 
-*支持的 `{DOMAIN}`: `FINANCE`, `NASA`, `ARS`, `IMMIGRATION`*
+*支持的 `{DOMAIN}`: `FINANCE`, `NASA`, `ARS`, `IMMIGRATION`, `SCIENCEDAILY`, `MIT`, `APA`*
 
 ### 3. 本地开发
 
@@ -92,14 +100,15 @@ npx wrangler dev
 npx wrangler deploy
 ```
 
-## 📅 定时发布计划 (Cron)
+> ⚠️ **当前状态**: 为了专注于手动触发与验证，克隆触发器目前在 `wrangler.toml` 中已被注释。若需启用，取消 `[triggers]` 块的注释即可。
 
-系统默认配置了以下发布时间（UTC/服务器时间）：
+调度表如下（Adelaide 澳洲阿德莱德时间 / 括号内为 UTC 服务器时间）：
 
-- **21:30**: 金融动态 (FINANCE)
-- **21:45**: 航天前沿 (NASA)
-- **22:00**: 技术洞察 (ARS)
-- **22:15**: 移民快讯 (IMMIGRATION)
+- **08:00 (21:30 UTC)**: 金融动态 (FINANCE)
+- **08:15 (21:45 UTC)**: 航天前沿 (NASA)
+- **08:30 (22:00 UTC)**: 技术洞察 (ARS)
+- **08:45 (22:15 UTC)**: 移民快讯 (IMMIGRATION)
+- **09:00 (22:30 UTC)**: 聚合批处理：科学前沿 (SCIENCEDAILY) → MIT 深读 (MIT) → 哲思漫谈 (APA)
 
 ## ⚖️ 开发规范
 

@@ -1,4 +1,5 @@
 node_modules/
+skill/output/
 dist/
 .dev.vars
 .wrangler/
