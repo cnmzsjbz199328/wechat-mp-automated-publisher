@@ -7,6 +7,9 @@ dist/
 # Cloudflare/Wrangler generated files
 .cloudflare/
 
+# Local AI tool config (machine-specific NTFS junctions, not portable)
+.gemini/
+
 # ==============================
 # Temporary test scripts (local only, contain API keys)
 # ==============================
