@@ -9,14 +9,14 @@ allowed-tools: Bash(node *)
 
 ## 参数
 
-`$ARGUMENTS` 为域名，可选值：`FINANCE` / `NASA` / `ARS` / `SCIENCEDAILY` / `MIT` / `APA` / `IMMIGRATION` / `all`
+`$ARGUMENTS` 为域名，可选值：`FINANCE` / `NASA` / `ARS` / `SCIENCEDAILY` / `MIT` / `APA` / `BBC` / `NATURE` / `SPACE` / `IMMIGRATION` / `all`
 
 ## 执行步骤
 
 **Step 1 — 确定域名**
 
 如果 `$ARGUMENTS` 为空，询问用户：
-> 请指定新闻域名：FINANCE / NASA / ARS / SCIENCEDAILY / MIT / APA / IMMIGRATION / all
+> 请指定新闻域名：FINANCE / NASA / ARS / SCIENCEDAILY / MIT / APA / BBC / NATURE / SPACE / IMMIGRATION / all
 
 如果用户输入 `all`，按顺序处理全部域名。
 

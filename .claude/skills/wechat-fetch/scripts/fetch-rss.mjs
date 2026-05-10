@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Usage: node .claude/skills/wechat-fetch/scripts/fetch-rss.mjs <DOMAIN>
-// Supported: FINANCE, NASA, ARS, SCIENCEDAILY, MIT, APA
+// Supported: FINANCE, NASA, ARS, SCIENCEDAILY, MIT, APA, BBC, NATURE, SPACE
 // MIT and APA return up to 8 items so the user can pick one for decomposition.
 // Output: JSON array to stdout
 
@@ -26,6 +26,9 @@ const RSS_SOURCES = {
   SCIENCEDAILY:'https://www.sciencedaily.com/rss/all.xml',
   MIT:         'https://news.mit.edu/rss/research',
   APA:         'https://blog.apaonline.org/feed/',
+  BBC:         'http://feeds.bbci.co.uk/news/science_and_environment/rss.xml',
+  NATURE:      'https://www.nature.com/nature.rss',
+  SPACE:       'https://www.space.com/feeds.xml',
 };
 
 const SOURCE_NAMES = {
@@ -35,6 +38,9 @@ const SOURCE_NAMES = {
   SCIENCEDAILY:'ScienceDaily',
   MIT:         'MIT Research',
   APA:         'APA',
+  BBC:         'BBC Science',
+  NATURE:      'Nature',
+  SPACE:       'Space.com',
 };
 
 function clean(str) {
@@ -58,14 +64,18 @@ function clean(str) {
     .replace(/&mdash;/g, '—')
     .replace(/&nbsp;/g,  ' ')
     .replace(/<[^>]*>?/gm, '')
+    .replace(/\]\]>\s*$/, '')
     .trim();
 }
 
-function parseItem(content, domain, sourceName) {
+function parseItem(content, domain, sourceName, rdfAbout = null) {
   const titleM = content.match(/<title>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/title>/i);
   const title  = titleM?.[1] || titleM?.[2];
-  const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i)?.[1];
-  const link    = content.match(/<link>([\s\S]*?)<\/link>/i)?.[1];
+  // Nature (RDF 1.0) uses dc:date instead of pubDate
+  const pubDate = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/i)?.[1]
+               || content.match(/<dc:date>([\s\S]*?)<\/dc:date>/i)?.[1];
+  // rdfAbout is the item URL from the rdf:about attribute on <item>
+  const link    = content.match(/<link>([\s\S]*?)<\/link>/i)?.[1] || rdfAbout;
 
   const descM    = content.match(/<description>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/description>/i);
   const encodedM = content.match(/<content:encoded>[\s\S]*?(?:<!\[CDATA\[([\s\S]*?)\]\]>|([\s\S]*?))<\/content:encoded>/i);
@@ -86,6 +96,13 @@ function parseItem(content, domain, sourceName) {
         .replace(/\s+/g, ' ')
         .trim();
     }
+  }
+
+  // NATURE: strip the standard "Nature, Published online: ...; doi:XXXX" boilerplate prefix
+  if (domain === 'NATURE') {
+    // Nature DOI article IDs use only lowercase letters, digits, and hyphens;
+    // this stops before the first uppercase letter that starts the real content.
+    description = description.replace(/^Nature,\s*Published online:[^;]+;\s*doi:10\.\d+\/[a-z\d-]+/, '').trim();
   }
 
   // ARS: strip common RSS footers
@@ -150,8 +167,11 @@ async function fetchRss(domain) {
   }
 
   const items = [];
-  for (const match of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
-    const item = parseItem(match[1], domain, SOURCE_NAMES[domain]);
+  for (const match of xml.matchAll(/<item(?:\s[^>]*)?>[\s\S]*?<\/item>/gi)) {
+    const full     = match[0];
+    const inner    = full.slice(full.indexOf('>') + 1, full.lastIndexOf('<'));
+    const rdfAbout = full.match(/rdf:about="([^"]+)"/i)?.[1] || null;
+    const item = parseItem(inner, domain, SOURCE_NAMES[domain], rdfAbout);
     if (item) items.push(item);
     if (items.length >= limit) break;
   }
@@ -165,7 +185,7 @@ loadEnv();
 const domain = process.argv[2]?.toUpperCase();
 if (!domain) {
   console.error('Usage: node fetch-rss.mjs <DOMAIN>');
-  console.error('Supported: FINANCE, NASA, ARS, SCIENCEDAILY, MIT, APA');
+  console.error('Supported: FINANCE, NASA, ARS, SCIENCEDAILY, MIT, APA, BBC, NATURE, SPACE');
   process.exit(1);
 }
 
