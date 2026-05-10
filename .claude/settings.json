@@ -9,10 +9,18 @@
       "Edit(/.claude/skills/wechat-draft/**)",
       "Edit(/.claude/skills/wechat-fetch/**)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\tj169\\\\OneDrive - Flinders\\\\work\\\\weixintest\\\\wechat-mp-automated-publisher\" -Recurse -Force)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Skill(wechat-fetch)",
+      "Skill(wechat-fetch:*)",
+      "Skill(wechat-draft)",
+      "Skill(wechat-draft:*)",
+      "Bash(node \".claude/skills/wechat-draft/scripts/generate-html.mjs\" --file \"skill/output/article.json\")",
+      "WebFetch(domain:www.sciencedaily.com)",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
-      "c:\\Users\\tj169\\OneDrive - Flinders\\work\\weixintest\\wechat-mp-automated-publisher\\.claude\\commands"
+      "c:\\Users\\tj169\\OneDrive - Flinders\\work\\weixintest\\wechat-mp-automated-publisher\\.claude\\commands",
+      "c:\\Users\\tj169\\AppData\\Local\\Temp"
     ]
   }
 }

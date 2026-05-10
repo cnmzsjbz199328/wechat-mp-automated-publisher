@@ -35,7 +35,41 @@ function divider(text) {
 }
 
 function meta(item) {
-  return `<p style="font-size:13px;color:${C.muted};margin:6px 0 12px;line-height:1.6;text-align:left;word-break:break-word;"><span style="color:${C.accent};font-weight:600;">${item.source || 'News'}</span>&nbsp;&nbsp;·&nbsp;&nbsp;${formatDate(item.pubDate)}</p>`;
+  return `<p style="font-size:13px;color:${C.muted};margin:6px 0 12px;line-height:1.6;text-align:left;word-break:break-word;">${formatDate(item.pubDate)}</p>`;
+}
+
+function renderBody(item) {
+  const t = item.aiTranslation;
+  const enParas = item.paragraphs;
+  const zhParas = t && Array.isArray(t.paragraphs) && t.paragraphs.length ? t.paragraphs : null;
+
+  // Bilingual interleaved: zh para then en para, repeated
+  if (zhParas && enParas && enParas.length) {
+    const len = Math.max(enParas.length, zhParas.length);
+    return Array.from({ length: len }, (_, i) => {
+      const zh = zhParas[i] || '';
+      const en = enParas[i] || '';
+      const zhStyle = i === 0
+        ? `font-size:15px;line-height:1.85;color:${C.text};margin:0 0 6px;text-align:left;word-break:break-word;background:${C.bgCode};padding:12px;border-left:4px solid ${C.accent};border-radius:0 4px 4px 0;`
+        : `font-size:15px;line-height:1.85;color:${C.text};margin:0 0 6px;text-align:left;word-break:break-word;`;
+      return (zh ? `<p style="${zhStyle}">${zh}</p>` : '')
+           + (en ? `<p style="font-size:13px;color:${C.muted};line-height:1.7;margin:0 0 20px;text-align:left;word-break:break-word;font-style:italic;">${en}</p>` : '');
+    }).join('');
+  }
+
+  // Chinese-only paragraphs (no English expansion)
+  if (zhParas) {
+    return zhParas.map((p, i) => i === 0
+      ? `<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 16px;text-align:left;word-break:break-word;background:${C.bgCode};padding:12px;border-left:4px solid ${C.accent};border-radius:0 4px 4px 0;">${p}</p>`
+      : `<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 16px;text-align:left;word-break:break-word;">${p}</p>`
+    ).join('');
+  }
+
+  // Fallback: single content string
+  if (t && t.content) {
+    return `<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 16px;text-align:left;word-break:break-word;background:${C.bgCode};padding:12px;border-left:4px solid ${C.accent};border-radius:0 4px 4px 0;">${t.content}</p>`;
+  }
+  return '';
 }
 
 function heroCard(item) {
@@ -44,15 +78,11 @@ function heroCard(item) {
 ${item.imageUrl ? `<p style="margin:0 0 16px;"><img src="${item.imageUrl}" alt="" style="width:100%;display:block;border-radius:6px;"/></p>` : ''}
 ${meta(item)}
 ${t ? `
-<p style="font-size:20px;font-weight:800;color:#1a1a1a;margin:0 0 12px;text-align:left;word-break:break-word;">${t.title}</p>
-<p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 16px;text-align:left;word-break:break-word;background:${C.bgCode};padding:12px;border-left:4px solid ${C.accent};border-radius:0 4px 4px 0;">${t.content}</p>
-<p style="font-size:16px;font-weight:700;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;margin:0 0 8px;text-align:left;word-break:break-word;">${item.title}</p>
-<p style="font-size:14px;color:${C.muted};line-height:1.7;margin:0 0 10px;text-align:left;word-break:break-word;">${item.description || ''}</p>
+${renderBody(item)}
 ` : `
-<p style="font-size:20px;font-weight:800;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 12px;text-align:left;word-break:break-word;">${item.title}</p>
 <p style="font-size:15px;line-height:1.85;color:${C.text};margin:0 0 10px;text-align:left;word-break:break-word;">${item.description || ''}</p>
 `}
-${item.link ? `<p style="margin:0 0 4px;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
+`;
 }
 
 function secondaryCard(item) {
@@ -70,7 +100,7 @@ ${t ? `
 <p style="font-size:17px;font-weight:700;color:#1a1a1a;font-family:Georgia,'Times New Roman',serif;line-height:1.45;margin:0 0 10px;text-align:left;word-break:break-word;">${item.title}</p>
 <p style="font-size:14px;line-height:1.8;color:${C.text};margin:0 0 8px;text-align:left;word-break:break-word;">${item.description || ''}</p>
 `}
-${item.link ? `<p style="margin:0;font-size:12px;color:${C.muted};text-align:left;word-break:break-all;">${shortUrl(item.link)}</p>` : ''}`;
+`;
 }
 
 function vocabSection(vocab) {
@@ -99,9 +129,19 @@ function vocabSection(vocab) {
   return rows || `<p style="font-size:14px;color:${C.muted};font-style:italic;text-align:left;">词汇正在生成中...</p>`;
 }
 
+function sourcesFooter(news) {
+  const parts = news
+    .filter(item => item.source || item.link)
+    .map(item => {
+      const name = item.source || '';
+      const url  = item.link ? shortUrl(item.link) : '';
+      return url ? `${name}（${url}）` : name;
+    });
+  return `<p style="margin-top:24px;text-align:left;font-size:11px;color:${C.muted};letter-spacing:0.04em;">数据源: ${parts.join('  ·  ')}</p>`;
+}
+
 function generateHtml(news, vocab) {
   const [hero, ...rest] = news;
-  const source = news[0]?.source || 'News';
   return `<div style="font-family:Georgia,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;color:${C.text};line-height:1.8;padding:8px 0;max-width:680px;margin:0 auto;background:#fff;text-align:left;word-break:break-word;">
 
 ${divider('Latest Reports')}
@@ -115,7 +155,7 @@ ${divider('今日阅读词汇')}
 
 ${vocabSection(vocab)}
 
-<p style="margin-top:36px;text-align:center;font-size:11px;color:${C.muted};letter-spacing:0.04em;">数据源: ${source}</p>
+${sourcesFooter(news)}
 
 </div>`;
 }

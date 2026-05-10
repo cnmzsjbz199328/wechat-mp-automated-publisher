@@ -35,6 +35,50 @@ allowed-tools: Bash(node *), Write
 
 ---
 
+## Step 3.5 — 抓取原文并五段式扩写（英文先行，再逐段中文对照）
+
+翻译确认后，对**每个条目**执行以下步骤：
+
+**3.5.1 抓取原文**
+
+使用 WebFetch 工具获取 `item.link` 对应的原始文章全文。若无法访问，告知用户并跳过扩写，退回摘要模式。
+
+**3.5.2 先写五段英文扩写**
+
+严格依据原文内容，撰写五段英文正文，禁止引入原文未提及的信息：
+
+1. **Background**：背景与读者痛点，带出研究问题
+2. **Core Discovery**：核心发现，具体引用基因名、机构名、研究者原话
+3. **Experiments**：实验设计与结果（CRISPR、模式生物、数据等）
+4. **Breakthrough**：关键突破与技术细节
+5. **Outlook**：研究者原话引述 + 未来意义，收尾有力
+
+每段 60–100 词，输出为 JSON 数组（对应 `item.paragraphs`）：
+```
+["En para 1", "En para 2", "En para 3", "En para 4", "En para 5"]
+```
+
+**3.5.3 逐段对照翻译为中文**
+
+按照 `${CLAUDE_SKILL_DIR}/prompts/translate.md` 的风格，将上述五段英文**逐段**翻译为流畅的简体中文，每段 60–100 字，禁止引入原文未提及的信息。
+
+输出为 JSON 数组（对应 `aiTranslation.paragraphs`），与英文段落一一对应：
+```
+["中文第一段", "中文第二段", "中文第三段", "中文第四段", "中文第五段"]
+```
+
+**最终 HTML 布局（中英对照，中文在前）：**
+每对段落按以下顺序渲染：
+```
+[中文第N段]  ← 正文字号，第一段带蓝色左边框引导框
+[英文第N段]  ← 小号灰色斜体
+```
+
+展示扩写与对照翻译结果，询问用户：
+> 中英对照正文满意吗？如需修改请告诉我，否则回复 `ok` 继续。
+
+---
+
 ## Step 4 — 词汇提取
 
 按照 `${CLAUDE_SKILL_DIR}/prompts/vocabulary.md` 的指令，从所有英文原文中提取 5 个高级词汇。
@@ -45,7 +89,7 @@ allowed-tools: Bash(node *), Write
 
 ## Step 5 — 组装并生成 HTML
 
-将翻译结果写回对应条目的 `aiTranslation: { title, content }` 字段，组装为以下 JSON，写入文件：
+将扩写与翻译结果写入对应字段，组装为以下 JSON，写入文件：
 
 ```json
 {
@@ -56,8 +100,12 @@ allowed-tools: Bash(node *), Write
       "link": "...",
       "source": "...",
       "imageUrl": "...",
-      "description": "原文摘要",
-      "aiTranslation": { "title": "中文标题", "content": "中文摘要" }
+      "description": "原文RSS摘要（一句话）",
+      "paragraphs": ["En para 1", "En para 2", "En para 3", "En para 4", "En para 5"],
+      "aiTranslation": {
+        "title": "中文标题",
+        "paragraphs": ["中文第一段", "中文第二段", "中文第三段", "中文第四段", "中文第五段"]
+      }
     }
   ],
   "vocab": "word | pos | 释义 | example\nword2 | pos | 释义 | example\n..."
