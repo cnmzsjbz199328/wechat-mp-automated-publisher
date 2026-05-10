@@ -65,6 +65,7 @@ function clean(str) {
     .replace(/&nbsp;/g,  ' ')
     .replace(/<[^>]*>?/gm, '')
     .replace(/\]\]>\s*$/, '')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
@@ -128,8 +129,13 @@ function parseItem(content, domain, sourceName, rdfAbout = null) {
 
   if (!title || !pubDate) return null;
 
+  const cleanTitle = clean(title);
+
+  // Drop podcast episodes, video clips, and slideshows — not suitable for WeChat articles
+  if (/\bpodcast\b|\bepisode\s+\d+\b|\bthis week in\b|\bvideo\b|\bslideshow\b/i.test(cleanTitle)) return null;
+
   return {
-    title:       clean(title),
+    title:       cleanTitle,
     pubDate,
     link:        link || null,
     source:      sourceName,

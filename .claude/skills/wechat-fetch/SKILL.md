@@ -53,6 +53,8 @@ allowed-tools: Bash(node *)
 
 MIT 和 APA 会展示最多 8 条候选（用于选 1 篇做拆解）。
 
+description 为空的条目（如 Space.com）标注 `📄 摘要缺失，仅凭标题推荐`，并在 Step 4 推荐中相应降权。
+
 ---
 
 **Step 4 — 基于公众号特性推荐**
