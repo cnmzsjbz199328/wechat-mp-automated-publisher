@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Usage:
-//   node .claude/skills/wechat-draft/scripts/wechat-publish.mjs --file skill/output/article.html --title "标题" [--summary "摘要"] [--thumb <url>]
+//   node .claude/skills/wechat-draft/scripts/wechat-publish.mjs --file skill/output/article.html --title "标题" [--summary "摘要"] [--thumb <url> | --thumb-file <本地png>]
 //   node .claude/skills/wechat-draft/scripts/wechat-publish.mjs --html "<div>...</div>" --title "标题"
 //
+// 封面优先级：--thumb-file（agy 生成的本地封面）> --thumb <url> > 默认图
 // Reads APPID and APPSECRET from .dev.vars
 
 import { readFileSync } from 'fs';
@@ -37,6 +38,30 @@ async function getToken(APPID, APPSECRET) {
   return data.access_token;
 }
 
+async function uploadThumbBuffer(token, ab, ct) {
+  const ext = ct.includes('png') ? 'png' : ct.includes('gif') ? 'gif' : 'jpg';
+  const fd  = new FormData();
+  fd.append('media', new Blob([ab], { type: ct }), `thumb.${ext}`);
+
+  const up   = await fetch(`${MEDIA_URL}?access_token=${token}&type=image`, { method: 'POST', body: fd });
+  const data = await up.json();
+  if (data.errcode) throw new Error(`封面上传失败: ${data.errmsg}`);
+  return data.thumb_media_id || data.media_id;
+}
+
+// 本地封面文件（agy 生成）→ thumb_media_id
+function localFileMime(file) {
+  const f = file.toLowerCase();
+  if (f.endsWith('.png')) return 'image/png';
+  if (f.endsWith('.gif')) return 'image/gif';
+  return 'image/jpeg';
+}
+
+async function uploadThumbFile(token, file) {
+  const buf = readFileSync(file);
+  return uploadThumbBuffer(token, buf, localFileMime(file));
+}
+
 async function uploadThumb(token, customUrl) {
   let url    = customUrl || DEFAULT_THUMB;
   let imgRes = await fetch(url, { redirect: 'follow', headers: { 'User-Agent': UA } });
@@ -49,15 +74,8 @@ async function uploadThumb(token, customUrl) {
   if (!imgRes.ok) throw new Error(`封面图下载失败: ${url}`);
 
   const ct  = imgRes.headers.get('content-type') || 'image/jpeg';
-  const ext = ct.includes('png') ? 'png' : ct.includes('gif') ? 'gif' : 'jpg';
   const ab  = await imgRes.arrayBuffer();
-  const fd  = new FormData();
-  fd.append('media', new Blob([ab], { type: ct }), `thumb.${ext}`);
-
-  const up   = await fetch(`${MEDIA_URL}?access_token=${token}&type=image`, { method: 'POST', body: fd });
-  const data = await up.json();
-  if (data.errcode) throw new Error(`封面上传失败: ${data.errmsg}`);
-  return data.thumb_media_id || data.media_id;
+  return uploadThumbBuffer(token, ab, ct);
 }
 
 async function createDraft(token, title, html, thumbId, summary) {
@@ -92,8 +110,9 @@ const get     = flag => { const i = args.indexOf(flag); return i >= 0 ? args[i +
 const htmlStr = get('--html');
 const htmlFile= get('--file');
 const title   = get('--title')   || '今日资讯';
-const summary = get('--summary') || '';
-const thumb   = get('--thumb')   || null;
+const summary   = get('--summary')    || '';
+const thumb     = get('--thumb')      || null;
+const thumbFile = get('--thumb-file') || null;
 
 let html = htmlStr;
 if (!html && htmlFile) html = readFileSync(htmlFile, 'utf8');
@@ -108,7 +127,9 @@ if (!html) {
   process.stdout.write('✅ Token 获取成功\n');
 
   process.stdout.write('⏳ 上传封面图...\n');
-  const thumbId = await uploadThumb(token, thumb);
+  const thumbId = thumbFile
+    ? await uploadThumbFile(token, thumbFile)   // 优先：agy 生成的本地封面
+    : await uploadThumb(token, thumb);          // 否则：自定义 URL 或默认图
   process.stdout.write(`✅ 封面上传成功: ${thumbId}\n`);
 
   process.stdout.write('⏳ 创建草稿...\n');

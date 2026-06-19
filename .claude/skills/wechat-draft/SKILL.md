@@ -1,7 +1,7 @@
 ---
 name: wechat-draft
 description: 基于选中条目完成翻译、词汇提取，生成 HTML 并发布到微信草稿箱
-allowed-tools: Bash(node *), Write
+allowed-tools: Bash(node *), Bash(agy *), Write
 ---
 
 基于对话中已筛选的新闻条目，完成翻译、词汇提取，生成 HTML，并发布到微信草稿箱。
@@ -87,6 +87,36 @@ allowed-tools: Bash(node *), Write
 
 ---
 
+## Step 4.5 — 配图生成（agy，仅当存在缺图条目时执行）
+
+本步遵循 **wechat-studio** 协议（角色边界、agy 调用约定、风格库、落盘校验与兜底，见 `.claude/skills/wechat-studio/SKILL.md`）。
+
+**4.5.1 选定风格（整篇统一）**
+
+检查各条目 `imageUrl`：若**所有**条目都已有 RSS 原图，跳过本步。若存在 `imageUrl == null` 的条目（如 MIT/APA 拆解出的第 2–5 条），先询问用户本篇视觉风格（取自 wechat-studio 风格库其一），整篇统一使用。
+
+**4.5.2 逐条生成内文配图**
+
+确保目录存在：`mkdir -p skill/output/images`。
+
+对每个 `imageUrl == null` 的条目（序号 n）：
+
+1. 依据该条目的标题 / 段落语义，撰写一句英文图意（concept），不得引入原文未提及的虚构信息。
+2. 按 wechat-studio 约定调用 agy 生成到 `skill/output/images/inline-<n>.png`（注意 `--print "<提示词>"` 放在所有 flag 之后）：
+   ```bash
+   agy --dangerously-skip-permissions --add-dir "<项目绝对路径>" --print "Generate an image using your nano banana image tool and save the PNG to <项目绝对路径>/skill/output/images/inline-<n>.png . Subject: <concept>. Style: <选定风格英文关键词>. Size 1024x683 (3:2). No text, no letters, no watermark, no logo. Clean composition with margin, even lighting."
+   ```
+3. 校验文件落盘（Read 图片确认）。失败则改写 prompt 重试一次；仍失败则该条目保持无图，继续下一条。
+4. 上传换取微信可用 URL，并写回该条目 `imageUrl`：
+   ```bash
+   node ${CLAUDE_SKILL_DIR}/../wechat-studio/scripts/wechat-image.mjs --file skill/output/images/inline-<n>.png
+   ```
+   stdout 输出的 `mp.weixin.qq.com` URL 即写入该条目 `imageUrl` 字段。
+
+> 已有 RSS 原图的条目保持不变。任何单图失败都不得中断流程。
+
+---
+
 ## Step 5 — 组装并生成 HTML
 
 将扩写与翻译结果写入对应字段，组装为以下 JSON，写入文件：
@@ -129,16 +159,34 @@ node ${CLAUDE_SKILL_DIR}/scripts/generate-html.mjs --file skill/output/article.j
 询问用户：
 > 1. **文章标题**（微信草稿标题）：
 > 2. **摘要**（可选，120字以内，留空则不填）：
-> 3. **封面图 URL**（可选，留空使用默认悉尼图片）：
+> 3. **封面**，三选一：
+>    - `生成` —— 由 agy 按全文主题 + Step 4.5 选定风格生成封面
+>    - 粘贴一个**封面图 URL**
+>    - 留空 —— 使用默认悉尼图片
+
+**若选择「生成」封面**（遵循 wechat-studio 协议，`--print "<提示词>"` 放在所有 flag 之后）：
+
+```bash
+agy --dangerously-skip-permissions --add-dir "<项目绝对路径>" --print "Generate an image using your nano banana image tool and save the PNG to <项目绝对路径>/skill/output/images/cover.png . Subject: <全文主题>. Style: <选定风格英文关键词>. Size 1175x500 (wide ~2.35:1 cover). No text, no letters, no watermark, no logo. Clean composition with margin, even lighting."
+```
+
+校验 `cover.png` 落盘（失败则重试一次；仍失败回退默认图）。
 
 ---
 
 ## Step 7 — 发布到微信
 
-运行发布脚本：
+运行发布脚本（按 Step 6 的封面选择三选一）：
 
 ```
-node ${CLAUDE_SKILL_DIR}/scripts/wechat-publish.mjs --file skill/output/article.html --title "<标题>" [--summary "<摘要>"] [--thumb "<封面URL>"]
+# 生成封面：
+node ${CLAUDE_SKILL_DIR}/scripts/wechat-publish.mjs --file skill/output/article.html --title "<标题>" [--summary "<摘要>"] --thumb-file skill/output/images/cover.png
+
+# 自定义 URL 封面：
+node ${CLAUDE_SKILL_DIR}/scripts/wechat-publish.mjs --file skill/output/article.html --title "<标题>" [--summary "<摘要>"] --thumb "<封面URL>"
+
+# 默认封面：
+node ${CLAUDE_SKILL_DIR}/scripts/wechat-publish.mjs --file skill/output/article.html --title "<标题>" [--summary "<摘要>"]
 ```
 
 输出发布结果。成功后告知用户：
