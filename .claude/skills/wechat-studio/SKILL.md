@@ -23,6 +23,30 @@ description: 双 CLI 协作协议——定义 Claude（主管）与 agy（图像
 
 ---
 
+## 图像生成双轨策略（重要 · 先判断再画）
+
+并非所有图都该交给 agy。扩散模型擅长"画得像"，不擅长"画得逻辑对"——它按训练先验出图，**离主流先验越远越容易崩**。两类失败模式：
+
+- **规则/逻辑推理图**（让路、变道、环岛通行权等）：训练集里几乎没有"红灯车队故意留空"这种画面，模型会回退到"车贴车"、删掉支路车、或贴网页截图先验，**几乎画不对**。
+- **区域性反先验细节**（澳洲靠左行驶、右舵方向盘在右、环岛顺时针）：全球数据以靠右/左舵为主，模型会顽固地画成靠右/左舵。
+
+因此分两轨：
+
+| 轨道 | 适用图类 | 工具 |
+|------|---------|------|
+| **A. 生成式** | 共现/插画类——人+物同时出现、无因果顺序（封面、罚单、安全带、手机对比、RBT 场景、情绪反差等）| **agy**（Nano Banana）|
+| **B. 程序化** | 规则/逻辑图——多步推理或精确空间关系（让路留空隙、提前变道、环岛通行权）| **rule-diagram.mjs**（rough.js 手绘风，坐标确定性，逻辑 100% 正确）|
+
+> rough.js 的手绘潦草笔触与 agy 的 doodle 同属一路，两轨混排风格统一。规则图不要硬让 agy 反复重画（既耗额度又难对），直接走 B 轨。
+
+**B 轨用法**（内置南澳驾驶系列三张：gap 支路留空隙 / lane 提前变道 / roundabout 环岛顺时针）：
+```bash
+node ${本 skill}/scripts/rule-diagram.mjs [gap lane roundabout] [--out=skill/output/images]
+```
+新增规则图 → 在 `rule-diagram.mjs` 的 `SCENES` 里加一个场景函数（俯视、澳洲靠左/右舵/环岛顺时针）。依赖 `roughjs` + `sharp`（已在 devDependencies）。
+
+---
+
 ## 前置依赖
 
 - `agy` 已安装并完成 OAuth 认证。自检：`agy models` 能列出模型即可。
@@ -95,6 +119,7 @@ agy --dangerously-skip-permissions --add-dir "<项目绝对路径>" --print "<�
 
 | 脚本 | 用途 | 输出 |
 |------|------|------|
+| `${本 skill}/scripts/rule-diagram.mjs [scene...]` | **B 轨**：程序化生成规则/逻辑图（rough.js 手绘风）| `skill/output/images/<scene>.png` |
 | `${本 skill}/scripts/wechat-image.mjs --file <png>` | 内文图 → 微信 `uploadimg` | 打印可直接用于正文 `<img>` 的 `mp.weixin.qq.com` URL |
 | `wechat-draft/scripts/wechat-publish.mjs --thumb-file <png>` | 本地封面 → `add_material` | 作为草稿 `thumb_media_id` |
 

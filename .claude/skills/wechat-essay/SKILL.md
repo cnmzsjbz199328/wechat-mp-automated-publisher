@@ -46,6 +46,8 @@ agy 已安装认证；`.dev.vars` 含 `APPID` / `APPSECRET`。
 
 确保目录存在：`mkdir -p skill/output/images`。
 
+> **先按 wechat-studio《图像生成双轨策略》选轨**：共现/插画类 → agy（下述）；规则/逻辑/精确空间关系类（如交通让行、流程示意）→ 程序化 `rule-diagram.mjs`，别硬让 agy 反复重画。两轨产物都落到 `skill/output/images/`，再统一走 `wechat-image.mjs` 上传。
+
 **内文插图**（每个配图点 i，按 wechat-studio 约定，`--print "<提示词>"` 放在所有 flag 之后）：
 ```bash
 agy --dangerously-skip-permissions --add-dir "<项目绝对路径>" --print "Generate an image using your nano banana image tool and save the PNG to <项目绝对路径>/skill/output/images/essay-<i>.png . Subject: <concept>. Style: <选定风格英文关键词>. Size 1024x683 (3:2). No text, no letters, no watermark, no logo. Clean composition with margin, even lighting."
