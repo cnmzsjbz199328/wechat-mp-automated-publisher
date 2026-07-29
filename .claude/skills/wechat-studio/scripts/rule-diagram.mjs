@@ -71,6 +71,20 @@ function arrow(points, o = arrowOpt, head = 17) {
   out.push(line(tx, ty, tx - head * Math.cos(a + 0.4), ty - head * Math.sin(a + 0.4), o));
   return out;
 }
+const FONT = 'Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif';
+// 文字直接走原生 <svg:text>（rough.js 不画字）。仅用于机制/流程类图的标签。
+function text(x, y, str, size = 27, anchor = 'middle', weight = 400) {
+  const esc = String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  S.push(`<text x="${x}" y="${y}" font-family="${FONT}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}" fill="${INK}">${esc}</text>`);
+}
+function textBlock(cx, cy, lines, size = 27, lh = 38) {
+  const start = cy - ((lines.length - 1) * lh) / 2 + size * 0.35;
+  lines.forEach((l, i) => text(cx, start + i * lh, l, size));
+}
+// 圆角手绘方框（白底，先画框再写字）
+function box(x, y, w, h) {
+  return gen.path(rrPath(x, y, w, h, 16), { ...base, fill: '#ffffff', fillStyle: 'solid', roughness: 1.6 });
+}
 function burst(cx, cy, r = 26) {
   const out = []; const n = 9;
   for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; const r2 = i % 2 ? r : r * 0.5; out.push(line(cx, cy, cx + r2 * Math.cos(a), cy + r2 * Math.sin(a), { ...thin, strokeWidth: 2 })); }
@@ -130,6 +144,32 @@ const SCENES = {
     add(...car(cx + r, cy - 6, 'down'));
     add(...car(cx + 6, cy + outer + 70, 'up'));
     add(...burst(cx + 30, cy + outer - 18));
+    return { w: W, h: H };
+  },
+  // 前胰岛素折叠机制对照图（Sanford Burnham Prebys / U-Michigan, PNAS 2026）：
+  // 上排正常 β 细胞 BiP + p58IPK 协同折叠；下排缺 p58IPK 时 BiP 独木难支，错误折叠堆积、胰岛素下降。
+  insulin() {
+    const W = 1024, H = 683;
+    const BX = [48, 330, 700], BW = [210, 300, 276], BH = 130;
+    const rows = [
+      { yTop: 112, title: '正常 β 细胞', cells: [['前胰岛素', 'proinsulin'], ['BiP + p58IPK', '协同折叠'], ['折叠正确', '胰岛素正常产出']] },
+      { yTop: 400, title: 'p58IPK 缺失', cells: [['前胰岛素', 'proinsulin'], ['只有 BiP', '缺少 p58IPK'], ['错误折叠堆积', '胰岛素产量下降']] },
+    ];
+    rows.forEach((row, ri) => {
+      const cy = row.yTop + BH / 2;
+      text(BX[0], row.yTop - 22, row.title, 30, 'start', 700);
+      row.cells.forEach((lines, i) => {
+        add(box(BX[i], row.yTop, BW[i], BH));
+        textBlock(BX[i] + BW[i] / 2, cy, lines);
+      });
+      // 箭头衔接三格
+      for (let i = 0; i < 2; i++) {
+        const x1 = BX[i] + BW[i] + 12, x2 = BX[i + 1] - 12;
+        add(...arrow([[x1, cy], [(x1 + x2) / 2, cy], [x2, cy]]));
+      }
+    });
+    add(...dash(48, 350, 976, 350));
+    text(W / 2, 640, 'BiP 独木难支 —— 两个伴侣蛋白配合，前胰岛素才折得对', 28);
     return { w: W, h: H };
   },
 };
