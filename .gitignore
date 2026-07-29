@@ -1,6 +1,10 @@
 node_modules/
 skill/output/
+output/
 dist/
+
+# examples/ 里只跟踪构建脚本，生成的 HTML 不入库
+examples/**/article.html
 .dev.vars
 .wrangler/
 
